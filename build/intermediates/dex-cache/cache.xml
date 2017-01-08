@@ -3,156 +3,156 @@
 
     <item
         is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/25.1.0/jars/classes.jar"
+        jar="/Users/lijunguan/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/25.1.0/support-annotations-25.1.0.jar"
         jumboMode="true"
         optimize="true"
-        revision="24.0.3"
-        sha1="6fb6ac3e8d3b9013819920d9ea11f3803c4c0033">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-animated-vector-drawable-25.1.0_164256506bc9f6b5f8db04d9027593a91712094d/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="e79aa3d9a16f8c9f16377c0608de70a8f31e5d80">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-vector-drawable-25.1.0_f770d1767a87ce48bef90f7c05efb13cbe8e3a7b/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-compat/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="ca3c7aa31e2726a400a6e552b93cb9f63c9a1e6d">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-compat-25.1.0_83a1ecf16b57ce38d3340f5653ac31ae83927517/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-media-compat/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="f02263e35e52668dd17b73bf961437e3d562b35f">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-media-compat-25.1.0_b93b8fa205eb07cbc20ca32d3c00d06ecf337a6c/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="327fb00a46cfa8af3c9531773e695496330cf3ec">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_6fa632a8d389aef3ef0e8c2337e963810c125a30/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="ad58b7393737450caa11bf40768e414cad7ded6b">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_15d379eb43cd2becb9ece4c68b23bed6107c4561/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-core-ui/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="aee64634871d88a419d59eb743c1258a60f19700">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-core-ui-25.1.0_ae3a6d1d7a7415faaed14176236f32108698bbb5/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-core-utils/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="0a0ef86b7fa568a52bf6214a0326ca1f1d618da7">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-core-utils-25.1.0_0fc3a700cbfad3c0ad05e6816be360af7dc9a40e/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="b266c8faa5af72e579b9da36ef35053ffed6ac64">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-recyclerview-v7-25.1.0_0a7e90620c90f5220801ed75403a66bc7b8b31e8/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-v4/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="d7c42c80f6509b9ea4db28ca7859ffae08ec5741">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-v4-25.1.0_a666e8d2e90fe1c98c220b73e7eccd80139a8dbe/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="1630658fbc2d222b988603c27b4a4249586fbfe7">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-appcompat-v7-25.1.0_99b559edf6dc4b36f84fb930beeb2bc71dc1a21c/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/support-fragment/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
-        sha1="2a53c4f3518116b8c6aee0e477233f0f7da8616f">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-fragment-25.1.0_3823dbdb55f7ea66f6b7743c9ad7ce02fb67e66a/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/25.1.0/support-annotations-25.1.0.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
+        revision="25.0.2"
         sha1="64cb6b229a8bdfd907bc8dd46839a0053e4c018d">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-25.1.0_457c9a93ca3ebcd70412b6d0600fd7451a1c1ba6/classes.dex" />
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-25.1.0_fbc6152a138c4ce7cf8a2a048d5069586ae4ba0c/classes.dex" />
     </item>
     <item
         is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.jakewharton/butterknife/8.4.0/jars/classes.jar"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-compat/25.1.0/jars/classes.jar"
         jumboMode="true"
         optimize="true"
-        revision="24.0.3"
-        sha1="a07818a1ecabdb149998823429cce555af4b9cba">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.jakewharton-butterknife-8.4.0_51a9835edbaf0f3edc2c62142ba0dc2b8ab02113/classes.dex" />
+        revision="25.0.2"
+        sha1="ca3c7aa31e2726a400a6e552b93cb9f63c9a1e6d">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-compat-25.1.0_55e111e27482b95b9a356d6fd5b8f1fb927b510b/classes.dex" />
     </item>
     <item
         is-multidex="true"
-        jar="/Users/e1858/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife-annotations/8.4.0/ea392375cf9ff59234a82e7928a204215ccc98cd/butterknife-annotations-8.4.0.jar"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
         jumboMode="true"
         optimize="true"
-        revision="24.0.3"
-        sha1="ea392375cf9ff59234a82e7928a204215ccc98cd">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/butterknife-annotations-8.4.0_fed3d842291cd415dfad615172278e2f742b2ecd/classes.dex" />
+        revision="25.0.2"
+        sha1="da1be465f53f450dcc02b68e2e66d8ac2a26f5e6">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_3a00dc6ff2fc797f2ad96f68597626caf5341ca6/classes.dex" />
     </item>
     <item
         is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/transition/25.1.0/jars/classes.jar"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/design/25.1.0/jars/classes.jar"
         jumboMode="true"
         optimize="true"
-        revision="24.0.3"
-        sha1="d38084015027549951cbaea5d5f6fb795cc81151">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-transition-25.1.0_510022c9802c9b5d1818517e80e7af1dc021bd7d/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/exploded-aar/com.android.support/design/25.1.0/jars/classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="24.0.3"
+        revision="25.0.2"
         sha1="30103d98fa5ed824b54af839c85e2111f9bde8ec">
-        <dex dex="/Users/e1858/AndroidStudioProjects/CalendarExaple-master/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-design-25.1.0_66b8bd1dd57f7222f5229c3c59fa9374f821e360/classes.dex" />
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-design-25.1.0_39a29545ab8105e7269ccbb6f5deaef9de869e9a/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-v4/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="d7c42c80f6509b9ea4db28ca7859ffae08ec5741">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-v4-25.1.0_d15f78ec3b6e775afbbf4fe8bc3aac11c2fcb47f/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="b266c8faa5af72e579b9da36ef35053ffed6ac64">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-recyclerview-v7-25.1.0_6e28c81717b35028965e14d8fc65280332bcf8d2/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-core-ui/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="aee64634871d88a419d59eb743c1258a60f19700">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-core-ui-25.1.0_bcabe0abced025440262247849969833da15e014/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-core-utils/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="0a0ef86b7fa568a52bf6214a0326ca1f1d618da7">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-core-utils-25.1.0_a1acb853f56909f527e4c1b2e0f31f51a6bb54f9/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="1630658fbc2d222b988603c27b4a4249586fbfe7">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-appcompat-v7-25.1.0_cb4dde50480008936954bbab42adb9bb6a1fb5c1/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-media-compat/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="f02263e35e52668dd17b73bf961437e3d562b35f">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-media-compat-25.1.0_da25897c6b407b00b1215922093e54ebf07ac887/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife-annotations/8.4.0/ea392375cf9ff59234a82e7928a204215ccc98cd/butterknife-annotations-8.4.0.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="ea392375cf9ff59234a82e7928a204215ccc98cd">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/butterknife-annotations-8.4.0_fe1a70063f3140f00e882ddfe8752ad70e07f5b6/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/transition/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="d38084015027549951cbaea5d5f6fb795cc81151">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-transition-25.1.0_9e1e3c3cc26713628e04bf078f0be52d32f153cc/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.jakewharton/butterknife/8.4.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="a07818a1ecabdb149998823429cce555af4b9cba">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.jakewharton-butterknife-8.4.0_776f793cc130287c6bb9370a7e1df137acd5c448/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="6fb6ac3e8d3b9013819920d9ea11f3803c4c0033">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-animated-vector-drawable-25.1.0_5eadd2ed7b42a2bc86a8aa82f8e2808eee2425ea/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-fragment/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="2a53c4f3518116b8c6aee0e477233f0f7da8616f">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-fragment-25.1.0_99658a70c4100f8551ec598b1496bad7e1086b29/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="cc198a19a41e37d6ad9ece059252c1121049ff7d">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_dc4755497958881710eabc34214aaa642147e285/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/25.1.0/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="e79aa3d9a16f8c9f16377c0608de70a8f31e5d80">
+        <dex dex="/Users/lijunguan/AndroidStudioProjects/CustomCalendar/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-vector-drawable-25.1.0_a4c761275ffb417555ec4627a90b029bb36e9c22/classes.dex" />
     </item>
 
 </items>

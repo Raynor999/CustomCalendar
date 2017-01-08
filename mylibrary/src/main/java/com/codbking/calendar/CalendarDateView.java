@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import java.util.LinkedList;
 
 public class CalendarDateView extends ViewPager implements CalendarTopView {
 
+    private static final String TAG = CalendarDateView.class.getSimpleName();
     SparseArray<CalendarView> mCalendarViews = new SparseArray<>();
     private CalendarTopViewChangeListener mCalendarLayoutChangeListener;
     private CalendarView.OnItemClickListener onItemClickListener;
@@ -52,12 +54,17 @@ public class CalendarDateView extends ViewPager implements CalendarTopView {
 
         int calendarHeight = 0;
         if (getAdapter() != null) {
-            CalendarView view = (CalendarView) getChildAt(0);
-            if (view != null) {
-                calendarHeight = view.getMeasuredHeight();
-                calendarItemHeight = view.getItemHeight();
+            int currentItem = getCurrentItem();
+            CalendarView calendarView = mCalendarViews.get(currentItem);
+            if (calendarView == null) {
+                calendarView = (CalendarView) getChildAt(0);
+            }
+            if (calendarView != null) {
+                calendarHeight = calendarView.getMeasuredHeight();
+                calendarItemHeight = calendarView.getItemHeight();
             }
         }
+        Log.d(TAG, "onMeasure: "+calendarHeight);
         setMeasuredDimension(widthMeasureSpec, MeasureSpec.makeMeasureSpec(calendarHeight, MeasureSpec.EXACTLY));
     }
 
@@ -65,7 +72,7 @@ public class CalendarDateView extends ViewPager implements CalendarTopView {
         final int[] dateArr = CalendarUtil.getYMD(new Date());
 
         setAdapter(new PagerAdapter() {
-          //  private LinkedList<CalendarView> mCache = new LinkedList();
+            private LinkedList<CalendarView> mCache = new LinkedList();
 
             @Override
             public int getCount() {
@@ -87,11 +94,12 @@ public class CalendarDateView extends ViewPager implements CalendarTopView {
                 CalendarFactory factory = CalendarFactory.getInstance();
 
                 CalendarView calendarView;
-//                if (!mCache.isEmpty()) {
-//                    calendarView = mCache.removeFirst();
-//                } else {
+                if (!mCache.isEmpty()) {
+                    calendarView = mCache.removeFirst();
+                    calendarView.setRow(row);
+                } else {
                     calendarView = new CalendarView(container.getContext(), row, mShowPreAndNext);
-              //  }
+                }
                 calendarView.setOnItemClickListener(onItemClickListener);
                 calendarView.setAdapter(mAdapter);
                 calendarView.setData(factory.getMonthOfDayList(year, month), position == Integer.MAX_VALUE / 2);
@@ -104,7 +112,7 @@ public class CalendarDateView extends ViewPager implements CalendarTopView {
             @Override
             public void destroyItem(ViewGroup container, int position, Object object) {
                 container.removeView((View) object);
-              //  mCache.addLast((CalendarView) object);
+                mCache.addLast((CalendarView) object);
                 mCalendarViews.remove(position);
             }
         });

@@ -25,6 +25,7 @@ public class CalendarView extends ViewGroup {
     private List<CalendarBean> data;
     private OnItemClickListener onItemClickListener;
 
+
     private int row;
     private int column = 7;
     private int itemHeight;
@@ -107,19 +108,19 @@ public class CalendarView extends ViewGroup {
         return new Object[]{getChildAt(mSelectedPosition), mSelectedPosition, data.get(mSelectedPosition)};
     }
 
-    public void setItemClick(final View view, final int potsition, final CalendarBean bean) {
+    public void setItemClick(final View view, final int position, final CalendarBean bean) {
         view.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 if (mSelectedPosition != -1) {
                     getChildAt(mSelectedPosition).setSelected(false);
-                    getChildAt(potsition).setSelected(true);
+                    getChildAt(position).setSelected(true);
                 }
-                mSelectedPosition = potsition;
+                mSelectedPosition = position;
 
                 if (onItemClickListener != null) {
-                    onItemClickListener.onItemClick(view, potsition, bean);
+                    onItemClickListener.onItemClick(view, position, bean);
                 }
             }
         });
@@ -184,5 +185,13 @@ public class CalendarView extends ViewGroup {
         b = t + itemHeight;
         view.layout(l, t, r, b);
 
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
     }
 }
