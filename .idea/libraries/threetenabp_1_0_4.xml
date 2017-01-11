@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="threetenabp-1.0.4">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/mylibrary/build/intermediates/exploded-aar/com.jakewharton.threetenabp/threetenabp/1.0.4/res" />
+      <root url="jar://$PROJECT_DIR$/mylibrary/build/intermediates/exploded-aar/com.jakewharton.threetenabp/threetenabp/1.0.4/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jakewharton.threetenabp/threetenabp/1.0.4/216222c8d6edae377a1b53a38622d153a54547d0/threetenabp-1.0.4-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jakewharton.threetenabp/threetenabp/1.0.4/216222c8d6edae377a1b53a38622d153a54547d0/threetenabp-1.0.4-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

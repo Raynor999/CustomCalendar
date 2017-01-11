@@ -74,6 +74,7 @@ class CalendarFactory {
             list.add(bean);
         }
         mCache.put(key, list);
+
         return list;
     }
 
