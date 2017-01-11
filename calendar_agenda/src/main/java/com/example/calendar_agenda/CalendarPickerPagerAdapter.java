@@ -3,7 +3,6 @@ package com.example.calendar_agenda;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -16,7 +15,6 @@ import android.view.ViewGroup;
 
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Period;
-import org.threeten.bp.temporal.TemporalAdjusters;
 
 import java.util.Calendar;
 
@@ -30,10 +28,9 @@ import java.util.Calendar;
  * An adapter for a list of {@link MonthView} items.
  */
 class CalendarPickerPagerAdapter extends PagerAdapter {
-    private static final int MONTHS_IN_YEAR = 12;
 
-    private final LocalDate mMinDate = LocalDate.MIN;
-    private final LocalDate mMaxDate = LocalDate.MAX;
+    private  LocalDate mMinDate = LocalDate.MIN;
+    private  LocalDate mMaxDate = LocalDate.MAX;
 
     private final SparseArray<ViewHolder> mItems = new SparseArray<>();
 
@@ -43,8 +40,6 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
 
     private LocalDate mSelectedDay = null;
 
-    private int mMonthTextAppearance;
-    private int mDayOfWeekTextAppearance;
     private int mDayTextAppearance;
 
     private ColorStateList mCalendarTextColor;
@@ -69,6 +64,8 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
     }
 
     public void setRange(@NonNull LocalDate min, @NonNull LocalDate max) {
+        mMinDate = min;
+        mMaxDate = max;
 
         Period period = Period.between(min, max);
         mCount = period.getMonths();
@@ -143,19 +140,6 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         notifyDataSetChanged();
     }
 
-    void setMonthTextAppearance(int resId) {
-        mMonthTextAppearance = resId;
-        notifyDataSetChanged();
-    }
-
-    void setDayOfWeekTextAppearance(int resId) {
-        mDayOfWeekTextAppearance = resId;
-        notifyDataSetChanged();
-    }
-
-    int getDayOfWeekTextAppearance() {
-        return mDayOfWeekTextAppearance;
-    }
 
     void setDayTextAppearance(int resId) {
         mDayTextAppearance = resId;
@@ -177,14 +161,6 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         return view == holder.container;
     }
 
-    private int getMonthForPosition(int position) {
-        return (position + mMinDate.get(Calendar.MONTH)) % MONTHS_IN_YEAR;
-    }
-
-    private int getYearForPosition(int position) {
-        final int yearOffset = (position + mMinDate.get(Calendar.MONTH)) / MONTHS_IN_YEAR;
-        return yearOffset + mMinDate.get(Calendar.YEAR);
-    }
 
     private int getPositionForDay(@Nullable LocalDate day) {
         if (day == null) {
@@ -200,8 +176,6 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
 
         final MonthView v = (MonthView) itemView.findViewById(mCalendarViewId);
         v.setOnDayClickListener(mOnDayClickListener);
-        v.setMonthTextAppearance(mMonthTextAppearance);
-        v.setDayOfWeekTextAppearance(mDayOfWeekTextAppearance);
         v.setDayTextAppearance(mDayTextAppearance);
 
         if (mDaySelectorColor != null) {
@@ -213,13 +187,13 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         }
 
         if (mCalendarTextColor != null) {
-            v.setMonthTextColor(mCalendarTextColor);
-            v.setDayOfWeekTextColor(mCalendarTextColor);
             v.setDayTextColor(mCalendarTextColor);
         }
 
-        final int month = getMonthForPosition(position);
-        final int year = getYearForPosition(position);
+
+        LocalDate localDate = mMinDate.plusMonths(position);
+        final int month = localDate.getMonthValue();
+        final int year = localDate.getYear();
 
         final int selectedDay;
         if (mSelectedDay != null && mSelectedDay.getMonthValue() == month) {
@@ -229,15 +203,15 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         }
 
         final int enabledDayRangeStart;
-        if (mMinDate.get(Calendar.MONTH) == month && mMinDate.get(Calendar.YEAR) == year) {
-            enabledDayRangeStart = mMinDate.get(Calendar.DAY_OF_MONTH);
+        if (mMinDate.getMonthValue() == month && mMinDate.getYear() == year) {
+            enabledDayRangeStart = mMinDate.getDayOfMonth();
         } else {
             enabledDayRangeStart = 1;
         }
 
         final int enabledDayRangeEnd;
-        if (mMaxDate.get(Calendar.MONTH) == month && mMaxDate.get(Calendar.YEAR) == year) {
-            enabledDayRangeEnd = mMaxDate.get(Calendar.DAY_OF_MONTH);
+        if (mMaxDate.getMonthValue() == month && mMaxDate.getYear() == year) {
+            enabledDayRangeEnd = mMaxDate.getDayOfMonth();
         } else {
             enabledDayRangeEnd = 31;
         }

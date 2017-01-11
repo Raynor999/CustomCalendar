@@ -1,21 +1,24 @@
 package com.example.calendar_agenda;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.accessibility.AccessibilityManager;
-import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.Month;
+import org.threeten.bp.Period;
+import org.threeten.bp.format.DateTimeParseException;
 
 import java.util.Calendar;
-import java.util.Locale;
 
 
 /**
@@ -23,29 +26,25 @@ import java.util.Locale;
  * https://lijunguan.github.io
  */
 
-class CalendarPickerView extends ViewGroup {
-    private static final int DEFAULT_LAYOUT = R.layout.calendar_picker_content;
+class CalendarPickerView extends LinearLayout {
+    public static final String TAG = CalendarPickerView.class.getSimpleName();
 
-    private static final int DEFAULT_START_YEAR = 1900;
-    private static final int DEFAULT_END_YEAR = 2100;
+    private static final int DEFAULT_LAYOUT = R.layout.layout_moth_view_pager;
+
 
     private static final int[] ATTRS_TEXT_COLOR = new int[]{android.R.attr.textColor};
 
-    private final Calendar mSelectedDay = Calendar.getInstance();
-    private final Calendar mMinDate = Calendar.getInstance();
-    private final Calendar mMaxDate = Calendar.getInstance();
+    private LocalDate mSelectedDay;
+    private LocalDate mMinDate = LocalDate.of(1900, Month.JANUARY, 1);
+    private LocalDate mMaxDate = LocalDate.of(2100, Month.DECEMBER, 31);
 
-    private final AccessibilityManager mAccessibilityManager;
 
     private final ViewPager mViewPager;
 
+    private final WeekBarView mWeekBarView;
+
 
     private final CalendarPickerPagerAdapter mAdapter;
-
-    /**
-     * Temporary calendar used for date calculations.
-     */
-    private Calendar mTempCalendar;
 
     private OnDaySelectedListener mOnDaySelectedListener;
 
@@ -59,18 +58,15 @@ class CalendarPickerView extends ViewGroup {
 
     public CalendarPickerView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
-        mAccessibilityManager = (AccessibilityManager) context.getSystemService(
-                Context.ACCESSIBILITY_SERVICE);
-
+        setOrientation(VERTICAL);
         final TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.CalendarPickerView, defStyleAttr, defStyleAttr);
 
         final int firstDayOfWeek = a.getInt(R.styleable.CalendarPickerView_cpv_first_day_of_week,
                 Calendar.SUNDAY);
 
-        final String minDate = a.getString(R.styleable.CalendarPickerView_cpv_min_date);
-        final String maxDate = a.getString(R.styleable.CalendarPickerView_cpv_max_date);
+        final String minDateStr = a.getString(R.styleable.CalendarPickerView_cpv_min_date);
+        final String maxDateStr = a.getString(R.styleable.CalendarPickerView_cpv_max_date);
 
 //        final int monthTextAppearanceResId = a.getResourceId(
 //                R.styleable.CalendarView_monthTextAppearance,
@@ -89,53 +85,48 @@ class CalendarPickerView extends ViewGroup {
 
         // Set up adapter.
         mAdapter = new CalendarPickerPagerAdapter(context,
-                R.layout.item_date_picker_month, R.id.month_view);
-        mAdapter.setMonthTextAppearance(monthTextAppearanceResId);
-        mAdapter.setDayOfWeekTextAppearance(dayOfWeekTextAppearanceResId);
+                R.layout.layout_month_view, R.id.month_view);
+
         mAdapter.setDayTextAppearance(dayTextAppearanceResId);
         mAdapter.setDaySelectorColor(daySelectorColor);
 
         final LayoutInflater inflater = LayoutInflater.from(context);
-        final ViewGroup content = (ViewGroup) inflater.inflate(DEFAULT_LAYOUT, this, false);
-
-        // Transfer all children from content to here.
-        while (content.getChildCount() > 0) {
-            final View child = content.getChildAt(0);
-            content.removeViewAt(0);
-            addView(child);
-        }
-
-        mViewPager = (ViewPager) findViewById(R.id.day_picker_view_pager);
+        mViewPager = (ViewPager) inflater.inflate(R.layout.layout_moth_view_pager, this, false);
+        mWeekBarView = (WeekBarView) inflater.inflate(R.layout.layout_week_bar, this, false);
+        addView(mWeekBarView);
+        addView(mViewPager);
         mViewPager.setAdapter(mAdapter);
-        mViewPager.addOnPageChangeListener(mOnPageChangedListener);
 
-        // Set up min and max dates.
-
-        LocalDate.parse("2016-12-04", )
-        final Calendar tempDate = Calendar.getInstance();
-        if (!CalendarView.parseDate(minDate, tempDate)) {
-            tempDate.set(DEFAULT_START_YEAR, Calendar.JANUARY, 1);
-        }
-        final long minDateMillis = tempDate.getTimeInMillis();
-
-        if (!CalendarView.parseDate(maxDate, tempDate)) {
-            tempDate.set(DEFAULT_END_YEAR, Calendar.DECEMBER, 31);
-        }
-        final long maxDateMillis = tempDate.getTimeInMillis();
-
-
-        if (maxDateMillis < minDateMillis) {
-            throw new IllegalArgumentException("maxDate must be >= minDate");
+        // Set up min and max dates. 设置最小时间和最大时间
+        try {
+            if (!TextUtils.isEmpty(minDateStr)) {
+                mMinDate = LocalDate.parse(minDateStr);
+            }
+            if (!TextUtils.isEmpty(maxDateStr)) {
+                mMaxDate = LocalDate.parse(maxDateStr);
+            }
+        } catch (DateTimeParseException e) {
+            Log.w(TAG, "Date String: " + minDateStr + maxDateStr + " not in format: ");
         }
 
-        final long setDateMillis = MathUtils.constrain(
-                System.currentTimeMillis(), minDateMillis, maxDateMillis);
+        if (mMaxDate.isBefore(mMinDate)) {
+            throw new IllegalArgumentException("maxDateStr must be >= minDateStr");
+        }
+
+
+        mSelectedDay = LocalDate.now();
+        if (mSelectedDay.isBefore(mMinDate)) {
+            mSelectedDay = mMinDate;
+        }
+        if (mSelectedDay.isAfter(mMaxDate)) {
+            mSelectedDay = mMaxDate;
+        }
+
 
         setFirstDayOfWeek(firstDayOfWeek);
-        setMinDate(minDateMillis);
-        setMaxDate(maxDateMillis);
-        setDate(setDateMillis, false);
+        onRangeChanged();
 
+        setDate(mSelectedDay, false);
         // Proxy selection callbacks to our own listener.
         mAdapter.setOnDaySelectedListener(new CalendarPickerPagerAdapter.OnDaySelectedListener() {
             @Override
@@ -148,62 +139,6 @@ class CalendarPickerView extends ViewGroup {
     }
 
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        final ViewPager viewPager = mViewPager;
-        measureChild(viewPager, widthMeasureSpec, heightMeasureSpec);
-
-        final int measuredWidthAndState = viewPager.getMeasuredWidthAndState();
-        final int measuredHeightAndState = viewPager.getMeasuredHeightAndState();
-        setMeasuredDimension(measuredWidthAndState, measuredHeightAndState);
-
-    }
-
-    @Override
-    public void onRtlPropertiesChanged(@ResolvedLayoutDir int layoutDirection) {
-        super.onRtlPropertiesChanged(layoutDirection);
-
-        requestLayout();
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        final ImageButton leftButton;
-        final ImageButton rightButton;
-
-
-        final int width = right - left;
-        final int height = bottom - top;
-        mViewPager.layout(0, 0, width, height);
-
-        final MonthView monthView = (MonthView) mViewPager.getChildAt(0);
-        final int monthHeight = monthView.getMonthHeight();
-        final int cellWidth = monthView.getCellWidth();
-
-        // Vertically center the previous/next buttons within the month
-        // header, horizontally center within the day cell.
-        final int leftDW = leftButton.getMeasuredWidth();
-        final int leftDH = leftButton.getMeasuredHeight();
-        final int leftIconTop = monthView.getPaddingTop() + (monthHeight - leftDH) / 2;
-        final int leftIconLeft = monthView.getPaddingLeft() + (cellWidth - leftDW) / 2;
-        leftButton.layout(leftIconLeft, leftIconTop, leftIconLeft + leftDW, leftIconTop + leftDH);
-
-        final int rightDW = rightButton.getMeasuredWidth();
-        final int rightDH = rightButton.getMeasuredHeight();
-        final int rightIconTop = monthView.getPaddingTop() + (monthHeight - rightDH) / 2;
-        final int rightIconRight = width - monthView.getPaddingRight() - (cellWidth - rightDW) / 2;
-        rightButton.layout(rightIconRight - rightDW, rightIconTop,
-                rightIconRight, rightIconTop + rightDH);
-    }
-
-    public void setDayOfWeekTextAppearance(int resId) {
-        mAdapter.setDayOfWeekTextAppearance(resId);
-    }
-
-    public int getDayOfWeekTextAppearance() {
-        return mAdapter.getDayOfWeekTextAppearance();
-    }
-
     public void setDayTextAppearance(int resId) {
         mAdapter.setDayTextAppearance(resId);
     }
@@ -213,75 +148,75 @@ class CalendarPickerView extends ViewGroup {
     }
 
     /**
-     * Sets the currently selected date to the specified timestamp. Jumps immediately to the new
-     * date. To animate to the new date, use {@link #setDate(long, boolean)}.
+     * Sets the currently selected date to the specified LocalDate. Jumps immediately to the new
+     * date. To animate to the new date, use {@link #setDate(LocalDate, boolean)}.
      *
-     * @param timeInMillis the target day in milliseconds
+     * @param localDate the target day
      */
-    public void setDate(long timeInMillis) {
-        setDate(timeInMillis, false);
+    public void setDate(LocalDate localDate) {
+        setDate(localDate, false);
     }
 
     /**
-     * Sets the currently selected date to the specified timestamp. Jumps immediately to the new
+     * Sets the currently selected date to the specified LocalDate. Jumps immediately to the new
      * date, optionally animating the transition.
      *
-     * @param timeInMillis the target day in milliseconds
-     * @param animate      whether to smooth scroll to the new position
+     * @param localDate the target day in milliseconds
+     * @param animate   whether to smooth scroll to the new position
      */
-    public void setDate(long timeInMillis, boolean animate) {
-        setDate(timeInMillis, animate, true);
+    public void setDate(LocalDate localDate, boolean animate) {
+        setDate(localDate, animate, true);
     }
 
     /**
      * Moves to the month containing the specified day, optionally setting the day as selected.
      *
-     * @param timeInMillis the target day in milliseconds
-     * @param animate      whether to smooth scroll to the new position
-     * @param setSelected  whether to set the specified day as selected
+     * @param localDate   the target day in LocalDate
+     * @param animate     whether to smooth scroll to the new position
+     * @param setSelected whether to set the specified day as selected
      */
-    private void setDate(long timeInMillis, boolean animate, boolean setSelected) {
+    private void setDate(LocalDate localDate, boolean animate, boolean setSelected) {
         if (setSelected) {
-            mSelectedDay.setTimeInMillis(timeInMillis);
+            mSelectedDay = localDate;
         }
 
-        final int position = getPositionFromDay(timeInMillis);
+        final int position = getPositionFromDay(localDate);
         if (position != mViewPager.getCurrentItem()) {
             mViewPager.setCurrentItem(position, animate);
         }
 
-        mTempCalendar.setTimeInMillis(timeInMillis);
-        mAdapter.setSelectedDay(mTempCalendar);
+        mAdapter.setSelectedDay(localDate);
     }
 
-    public long getDate() {
-        return mSelectedDay.getTimeInMillis();
+    public LocalDate getDate() {
+        return mSelectedDay;
     }
 
     public void setFirstDayOfWeek(int firstDayOfWeek) {
         mAdapter.setFirstDayOfWeek(firstDayOfWeek);
+        mWeekBarView.setFirstDayOfWeek(firstDayOfWeek);
     }
 
     public int getFirstDayOfWeek() {
         return mAdapter.getFirstDayOfWeek();
     }
 
-    public void setMinDate(long timeInMillis) {
-        mMinDate.setTimeInMillis(timeInMillis);
+    public void setMinDate(@NonNull LocalDate minDate) {
+        mMinDate = minDate;
         onRangeChanged();
     }
 
-    public long getMinDate() {
-        return mMinDate.getTimeInMillis();
+    public LocalDate getMinDate() {
+        return mMinDate;
     }
 
-    public void setMaxDate(long timeInMillis) {
-        mMaxDate.setTimeInMillis(timeInMillis);
+    public void setMaxDate(LocalDate maxDate) {
+        mMaxDate = maxDate;
         onRangeChanged();
     }
 
-    public long getMaxDate() {
-        return mMaxDate.getTimeInMillis();
+    public LocalDate getMaxDate() {
+        return mMaxDate;
     }
 
     /**
@@ -292,63 +227,22 @@ class CalendarPickerView extends ViewGroup {
 
         // Changing the min/max date changes the selection position since we
         // don't really have stable IDs. Jumps immediately to the new position.
-        setDate(mSelectedDay.getTimeInMillis(), false, false);
+        setDate(mSelectedDay, false, false);
 
     }
 
-    /**
-     * Sets the listener to call when the user selects a day.
-     *
-     * @param listener The listener to call.
-     */
-    public void setOnDaySelectedListener(OnDaySelectedListener listener) {
-        mOnDaySelectedListener = listener;
+
+    private int getPositionFromDay(LocalDate localDate) {
+        final int totalMonth = mAdapter.getCount();
+        //计算给定日期和最小日期之间有几个月，   diff moth between mMinDate and params
+        final int diffMonth = Period.between(mMinDate, localDate).getMonths();
+        return constrain(diffMonth, 0, totalMonth - 1);
     }
 
-    private int getDiffMonths(Calendar start, Calendar end) {
-        final int diffYears = end.get(Calendar.YEAR) - start.get(Calendar.YEAR);
-        return end.get(Calendar.MONTH) - start.get(Calendar.MONTH) + 12 * diffYears;
+    private int constrain(int amount, int low, int high) {
+        return amount < low ? low : (amount > high ? high : amount);
     }
 
-    private int getPositionFromDay(long timeInMillis) {
-        final int diffMonthMax = getDiffMonths(mMinDate, mMaxDate);
-        final int diffMonth = getDiffMonths(mMinDate, getTempCalendarForTime(timeInMillis));
-        return MathUtils.constrain(diffMonth, 0, diffMonthMax);
-    }
-
-    private Calendar getTempCalendarForTime(long timeInMillis) {
-        if (mTempCalendar == null) {
-            mTempCalendar = Calendar.getInstance();
-        }
-        mTempCalendar.setTimeInMillis(timeInMillis);
-        return mTempCalendar;
-    }
-
-    /**
-     * Gets the position of the view that is most prominently displayed within the list view.
-     */
-    public int getMostVisiblePosition() {
-        return mViewPager.getCurrentItem();
-    }
-
-    public void setPosition(int position) {
-        mViewPager.setCurrentItem(position, false);
-    }
-
-    private final ViewPager.OnPageChangeListener mOnPageChangedListener = new ViewPager.OnPageChangeListener() {
-        @Override
-        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        }
-
-        @Override
-        public void onPageScrollStateChanged(int state) {
-        }
-
-        @Override
-        public void onPageSelected(int position) {
-            updateButtonVisibility(position);
-        }
-    };
 
     public interface OnDaySelectedListener {
         void onDaySelected(CalendarPickerView view, LocalDate day);
