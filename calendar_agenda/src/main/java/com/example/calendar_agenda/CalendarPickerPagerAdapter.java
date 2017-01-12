@@ -213,7 +213,7 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         if (mMaxDate.getMonthValue() == month && mMaxDate.getYear() == year) {
             enabledDayRangeEnd = mMaxDate.getDayOfMonth();
         } else {
-            enabledDayRangeEnd = 31;
+            enabledDayRangeEnd = localDate.lengthOfMonth();
         }
 
         v.setMonthParams(selectedDay, month, year, mFirstDayOfWeek,

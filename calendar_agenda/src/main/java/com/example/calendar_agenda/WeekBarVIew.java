@@ -8,7 +8,6 @@ import android.graphics.Paint;
 
 import android.support.annotation.ColorInt;
 import android.support.annotation.IntRange;
-import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,7 +15,6 @@ import android.view.View;
 
 import com.example.calendar_agenda.util.CalendarUtils;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 /**
@@ -26,11 +24,10 @@ import java.util.Locale;
 
 public class WeekBarView extends View {
 
-    private static final int DEFAULT_WEEK_START = Calendar.SUNDAY;
     @ColorInt
     private static final int DEFAULT_TEXT_COLOR = Color.parseColor("#666666");
 
-    private int mWeekStart = DEFAULT_WEEK_START;
+    private int mWeekStart ;
 
     private final TextPaint mDayOfWeekPaint = new TextPaint();
 
@@ -60,6 +57,7 @@ public class WeekBarView extends View {
         super(context, attrs, defStyleAttr);
         mLocale = getResources().getConfiguration().locale;
         mMetrics = getResources().getDisplayMetrics();
+        mWeekStart = CalendarUtils.getFirstDayOfWeek(mLocale);
         initAttrs(context, attrs);
         initPaint();
     }
@@ -82,8 +80,7 @@ public class WeekBarView extends View {
     /**
      * 设置一周的第一天从星期几开始
      *
-     * @param weekStart 那一天应该作为一周的开始, 有效的取值范围是 1~7,  eg 1 等价于 SUNDAY {@link
-     *                  android.icu.util.Calendar#SUNDAY} through {@link android.icu.util.Calendar#SATURDAY}
+     * @param weekStart 那一天应该作为一周的开始, 有效的取值范围是 1~7,  eg 1 等价于 Mon
      */
     public void setFirstDayOfWeek(@IntRange(from = 1, to = 7) int weekStart) {
         mWeekStart = weekStart;
@@ -94,7 +91,7 @@ public class WeekBarView extends View {
 
     private void updateDayOfWeekLabels() {
         // for this list correspond to Calendar days, e.g. SUNDAY is index 0.
-        final String[] tinyWeekdayNames = CalendarUtils.getsTinyWeekdayNames(mLocale);
+        final String[] tinyWeekdayNames = CalendarUtils.getTinyWeekdayNames(mLocale);
         for (int i = 0; i < 7; i++) {
             mDayOfWeekLabels[i] = tinyWeekdayNames[(mWeekStart + i - 1) % 7];
         }
@@ -108,7 +105,7 @@ public class WeekBarView extends View {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
         if (heightMode == MeasureSpec.AT_MOST) { // 没有指定值的情况下,设置默认高度为32dp
-            heightSize = mMetrics.densityDpi * 32;
+            heightSize = mMetrics.densityDpi * 36;
         }
         if (widthMode == MeasureSpec.AT_MOST) {
             widthSize = mMetrics.densityDpi * 300;

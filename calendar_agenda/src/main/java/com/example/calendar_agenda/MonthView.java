@@ -8,34 +8,40 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.icu.text.DisplayContext;
-import android.icu.text.SimpleDateFormat;
 import android.os.Build;
-import android.os.Bundle;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
-import android.support.v4.widget.ExploreByTouchHelper;
 import android.text.TextPaint;
-import android.text.format.DateFormat;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.MonthDisplayHelper;
 import android.util.StateSet;
+import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-
 import android.view.View;
 import android.view.ViewParent;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 
+import com.example.calendar_agenda.util.CalendarUtils;
+
+import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.temporal.ChronoField;
+import org.threeten.bp.temporal.WeekFields;
 
 import java.text.NumberFormat;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
+
+import static android.R.attr.textColor;
 
 /**
  * Created by lijunguan on 2017/1/11. email: lijunguan199210@gmail.com blog:
@@ -47,46 +53,30 @@ class MonthView extends View {
     private static final int MAX_WEEKS_IN_MONTH = 6;
 
     private static final int DEFAULT_SELECTED_DAY = -1;
-    private static final int DEFAULT_WEEK_START = Calendar.SUNDAY;
+    private static final int DEFAULT_WEEK_START = DayOfWeek.SUNDAY.getValue();
 
     private static final String MONTH_YEAR_FORMAT = "MMMMy";
 
     private static final int SELECTED_HIGHLIGHT_ALPHA = 0xB0;
 
-    private final TextPaint mMonthPaint = new TextPaint();
-    private final TextPaint mDayOfWeekPaint = new TextPaint();
+
     private final TextPaint mDayPaint = new TextPaint();
     private final Paint mDaySelectorPaint = new Paint();
     private final Paint mDayHighlightPaint = new Paint();
     private final Paint mDayHighlightSelectorPaint = new Paint();
-
-    /**
-     * Array of single-character weekday labels ordered by column index.
-     */
-    private final String[] mDayOfWeekLabels = new String[7];
-
-    private final Calendar mCalendar;
-    private final Locale mLocale;
-
-    private final MonthViewTouchHelper mTouchHelper;
-
-    private final NumberFormat mDayFormatter;
+    private final GestureDetector mGestureDetector;
 
     // Desired dimensions.
-    private final int mDesiredMonthHeight;
-    private final int mDesiredDayOfWeekHeight;
+
     private final int mDesiredDayHeight;
     private final int mDesiredCellWidth;
     private final int mDesiredDaySelectorRadius;
 
     private String mMonthYearLabel;
 
-    private int mMonth;
+    private int mMonth = 1;
     private int mYear;
 
-    // Dimensions as laid out.
-    private int mMonthHeight;
-    private int mDayOfWeekHeight;
     private int mDayHeight;
     private int mCellWidth;
     private int mDaySelectorRadius;
@@ -134,7 +124,8 @@ class MonthView extends View {
      */
     private OnDayClickListener mOnDayClickListener;
 
-    private ColorStateList mDayTextColor;
+    @ColorInt
+    private int mDayTextColor;
 
     private int mHighlightedDay = -1;
     private int mPreviouslyHighlightedDay = -1;
@@ -149,104 +140,45 @@ class MonthView extends View {
     }
 
     public MonthView(Context context, AttributeSet attrs, int defStyleAttr) {
-
         super(context, attrs, defStyleAttr);
-
         final Resources res = context.getResources();
-        mDesiredMonthHeight = res.getDimensionPixelSize(android.R.dimen.date_picker_month_height);
-        mDesiredDayOfWeekHeight = res.getDimensionPixelSize(R.dimen.date_picker_day_of_week_height);
-        mDesiredDayHeight = res.getDimensionPixelSize(R.dimen.date_picker_day_height);
-        mDesiredCellWidth = res.getDimensionPixelSize(R.dimen.date_picker_day_width);
-        mDesiredDaySelectorRadius = res.getDimensionPixelSize(
-                R.dimen.date_picker_day_selector_radius);
-
-        // Set up accessibility components.
-        mTouchHelper = new MonthViewTouchHelper(this);
-
-        setAccessibilityDelegate(mTouchHelper);
+        DisplayMetrics displayMetrics = res.getDisplayMetrics();
+        mDesiredCellWidth = 40 * displayMetrics.densityDpi;
+        mDesiredDayHeight = 44 * displayMetrics.densityDpi;
+        mDesiredDaySelectorRadius = 20 * displayMetrics.densityDpi;
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
-
-        mLocale = res.getConfiguration().locale;
-        mCalendar = Calendar.getInstance(mLocale);
-
-        mDayFormatter = NumberFormat.getIntegerInstance(mLocale);
-
         updateMonthYearLabel();
-        updateDayOfWeekLabels();
-
         initPaints(res);
+
+        mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapUp(MotionEvent event) {
+                final int x = (int) (event.getX() + 0.5f);
+                final int y = (int) (event.getY() + 0.5f);
+                final int clickedDay = getDayAtLocation(x, y);
+                onDayClicked(clickedDay);
+                return true;
+            }
+        });
     }
 
 
     private void updateMonthYearLabel() {
-        final String format = DateFormat.getBestDateTimePattern(mLocale, MONTH_YEAR_FORMAT);
-        final SimpleDateFormat formatter = new SimpleDateFormat(format, mLocale);
-        formatter.setContext(DisplayContext.CAPITALIZATION_FOR_STANDALONE);
-        mMonthYearLabel = formatter.format(mCalendar.getTime());
+        mMonthYearLabel = YearMonth.of(mYear, mMonth).format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
-
-
-    /**
-     * Applies the specified text appearance resource to a paint, returning the text color if one is
-     * set in the text appearance.
-     *
-     * @param p     the paint to modify
-     * @param resId the resource ID of the text appearance
-     * @return the text color, if available
-     */
-    private ColorStateList applyTextAppearance(Paint p, int resId) {
-        final TypedArray ta = getContext().obtainStyledAttributes(null,
-                R.styleable.TextAppearance, 0, resId);
-
-        final String fontFamily = ta.getString(R.styleable.TextAppearance_fontFamily);
-        if (fontFamily != null) {
-            p.setTypeface(Typeface.create(fontFamily, 0));
-        }
-
-        p.setTextSize(ta.getDimensionPixelSize(
-                R.styleable.TextAppearance_textSize, (int) p.getTextSize()));
-
-        final ColorStateList textColor = ta.getColorStateList(R.styleable.TextAppearance_textColor);
-        if (textColor != null) {
-            final int enabledColor = textColor.getColorForState(ENABLED_STATE_SET, 0);
-            p.setColor(enabledColor);
-        }
-
-        ta.recycle();
-
-        return textColor;
-    }
-
-    public int getMonthHeight() {
-        return mMonthHeight;
-    }
 
     public int getCellWidth() {
         return mCellWidth;
     }
 
-    public void setMonthTextAppearance(int resId) {
-        applyTextAppearance(mMonthPaint, resId);
 
-        invalidate();
-    }
-
-    public void setDayOfWeekTextAppearance(int resId) {
-        applyTextAppearance(mDayOfWeekPaint, resId);
-        invalidate();
-    }
-
-    public void setDayTextAppearance(int resId) {
-        final ColorStateList textColor = applyTextAppearance(mDayPaint, resId);
-        if (textColor != null) {
-            mDayTextColor = textColor;
-        }
-
+    public void setDayTextAppearance(@ColorRes int resId) {
+        mDayTextColor = ContextCompat.getColor(getContext(), resId);
         invalidate();
     }
 
@@ -254,28 +186,9 @@ class MonthView extends View {
      * Sets up the text and style properties for painting.
      */
     private void initPaints(Resources res) {
-        final String monthTypeface = res.getString(R.string.date_picker_month_typeface);
-        final String dayOfWeekTypeface = res.getString(R.string.date_picker_day_of_week_typeface);
-        final String dayTypeface = res.getString(R.string.date_picker_day_typeface);
 
-        final int monthTextSize = res.getDimensionPixelSize(
-                R.dimen.date_picker_month_text_size);
-        final int dayOfWeekTextSize = res.getDimensionPixelSize(
-                R.dimen.date_picker_day_of_week_text_size);
-        final int dayTextSize = res.getDimensionPixelSize(
-                R.dimen.date_picker_day_text_size);
-
-        mMonthPaint.setAntiAlias(true);
-        mMonthPaint.setTextSize(monthTextSize);
-        mMonthPaint.setTypeface(Typeface.create(monthTypeface, 0));
-        mMonthPaint.setTextAlign(Paint.Align.CENTER);
-        mMonthPaint.setStyle(Paint.Style.FILL);
-
-        mDayOfWeekPaint.setAntiAlias(true);
-        mDayOfWeekPaint.setTextSize(dayOfWeekTextSize);
-        mDayOfWeekPaint.setTypeface(Typeface.create(dayOfWeekTypeface, 0));
-        mDayOfWeekPaint.setTextAlign(Paint.Align.CENTER);
-        mDayOfWeekPaint.setStyle(Paint.Style.FILL);
+        //TODO 添加属性配置
+        float dayTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 13, getResources().getDisplayMetrics());
 
         mDaySelectorPaint.setAntiAlias(true);
         mDaySelectorPaint.setStyle(Paint.Style.FILL);
@@ -288,41 +201,25 @@ class MonthView extends View {
 
         mDayPaint.setAntiAlias(true);
         mDayPaint.setTextSize(dayTextSize);
-        mDayPaint.setTypeface(Typeface.create(dayTypeface, 0));
         mDayPaint.setTextAlign(Paint.Align.CENTER);
         mDayPaint.setStyle(Paint.Style.FILL);
     }
 
-    void setMonthTextColor(ColorStateList monthTextColor) {
-        final int enabledColor = monthTextColor.getColorForState(ENABLED_STATE_SET, 0);
-        mMonthPaint.setColor(enabledColor);
+
+    void setDayTextColor(@ColorInt int color) {
+        mDayTextColor = color;
         invalidate();
     }
 
-    void setDayOfWeekTextColor(ColorStateList dayOfWeekTextColor) {
-        final int enabledColor = dayOfWeekTextColor.getColorForState(ENABLED_STATE_SET, 0);
-        mDayOfWeekPaint.setColor(enabledColor);
-        invalidate();
-    }
-
-    void setDayTextColor(ColorStateList dayTextColor) {
-        mDayTextColor = dayTextColor;
-        invalidate();
-    }
-
-    void setDaySelectorColor(ColorStateList dayBackgroundColor) {
-        final int activatedColor = dayBackgroundColor.getColorForState(
-                StateSet.get(StateSet.VIEW_STATE_ENABLED | StateSet.VIEW_STATE_ACTIVATED), 0);
-        mDaySelectorPaint.setColor(activatedColor);
-        mDayHighlightSelectorPaint.setColor(activatedColor);
+    void setDaySelectorColor(@ColorInt int color) {
+        mDaySelectorPaint.setColor(color);
+        mDayHighlightSelectorPaint.setColor(color);
         mDayHighlightSelectorPaint.setAlpha(SELECTED_HIGHLIGHT_ALPHA);
         invalidate();
     }
 
-    void setDayHighlightColor(ColorStateList dayHighlightColor) {
-        final int pressedColor = dayHighlightColor.getColorForState(
-                StateSet.get(StateSet.VIEW_STATE_ENABLED | StateSet.VIEW_STATE_PRESSED), 0);
-        mDayHighlightPaint.setColor(pressedColor);
+    void setDayHighlightColor(@ColorInt int color) {
+        mDayHighlightPaint.setColor(color);
         invalidate();
     }
 
@@ -330,48 +227,44 @@ class MonthView extends View {
         mOnDayClickListener = listener;
     }
 
-    @Override
-    public boolean dispatchHoverEvent(MotionEvent event) {
-        // First right-of-refusal goes the touch exploration helper.
-        return mTouchHelper.dispatchHoverEvent(event) || super.dispatchHoverEvent(event);
-    }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        final int x = (int) (event.getX() + 0.5f);
-        final int y = (int) (event.getY() + 0.5f);
+//    @Override
+//    public boolean onTouchEvent(MotionEvent event) {
+//        final int x = (int) (event.getX() + 0.5f);
+//        final int y = (int) (event.getY() + 0.5f);
+//
+//        final int action = event.getAction();
+//        switch (action) {
+//            case MotionEvent.ACTION_DOWN:
+//            case MotionEvent.ACTION_MOVE:
+//                final int touchedItem = getDayAtLocation(x, y);
+//                mIsTouchHighlighted = true;
+//                if (mHighlightedDay != touchedItem) {
+//                    mHighlightedDay = touchedItem;
+//                    mPreviouslyHighlightedDay = touchedItem;
+//                    invalidate();
+//                }
+//                if (action == MotionEvent.ACTION_DOWN && touchedItem < 0) {
+//                    // Touch something that's not an item, reject event.
+//                    return false;
+//                }
+//                break;
+//
+//            case MotionEvent.ACTION_UP:
+//                final int clickedDay = getDayAtLocation(x, y);
+//                onDayClicked(clickedDay);
+//                // Fall through.
+//            case MotionEvent.ACTION_CANCEL:
+//                // Reset touched day on stream end.
+//                mHighlightedDay = -1;
+//                mIsTouchHighlighted = false;
+//                invalidate();
+//                break;
+//        }
+//        return true;
+//    }
 
-        final int action = event.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-                final int touchedItem = getDayAtLocation(x, y);
-                mIsTouchHighlighted = true;
-                if (mHighlightedDay != touchedItem) {
-                    mHighlightedDay = touchedItem;
-                    mPreviouslyHighlightedDay = touchedItem;
-                    invalidate();
-                }
-                if (action == MotionEvent.ACTION_DOWN && touchedItem < 0) {
-                    // Touch something that's not an item, reject event.
-                    return false;
-                }
-                break;
-
-            case MotionEvent.ACTION_UP:
-                final int clickedDay = getDayAtLocation(x, y);
-                onDayClicked(clickedDay);
-                // Fall through.
-            case MotionEvent.ACTION_CANCEL:
-                // Reset touched day on stream end.
-                mHighlightedDay = -1;
-                mIsTouchHighlighted = false;
-                invalidate();
-                break;
-        }
-        return true;
-    }
-
+    @SuppressWarnings("WrongConstant")
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // We need to handle focus change within the SimpleMonthView because we are simulating
@@ -383,12 +276,12 @@ class MonthView extends View {
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
                 if (event.hasNoModifiers()) {
-                    focusChanged = moveOneDay(isLayoutRtl());
+                    focusChanged = moveOneDay(false);
                 }
                 break;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 if (event.hasNoModifiers()) {
-                    focusChanged = moveOneDay(!isLayoutRtl());
+                    focusChanged = moveOneDay(true);
                 }
                 break;
             case KeyEvent.KEYCODE_DPAD_UP:
@@ -513,19 +406,19 @@ class MonthView extends View {
             int centerY = previouslyFocusedRect.centerY();
 
             final TextPaint p = mDayPaint;
-            final int headerHeight = mMonthHeight + mDayOfWeekHeight;
+
             final int rowHeight = mDayHeight;
 
             // Text is vertically centered within the row height.
             final float halfLineHeight = (p.ascent() + p.descent()) / 2f;
-            final int rowCenter = headerHeight + rowHeight / 2;
+            final int rowCenter = rowHeight / 2;
 
             centerY -= rowCenter - halfLineHeight;
             int row = Math.round(centerY / (float) rowHeight);
             final int maxDay = findDayOffset() + mDaysInMonth;
             final int maxRows = (maxDay / DAYS_IN_WEEK) - ((maxDay % DAYS_IN_WEEK == 0) ? 1 : 0);
 
-            row = MathUtils.constrain(row, 0, maxRows);
+            row = constrain(row, 0, maxRows);
             return row;
         }
     }
@@ -538,10 +431,10 @@ class MonthView extends View {
         if (previouslyFocusedRect == null) {
             return DAYS_IN_WEEK / 2;
         } else {
-            int centerX = previouslyFocusedRect.centerX() - mPaddingLeft;
+            int centerX = previouslyFocusedRect.centerX() - getPaddingLeft();
             final int columnFromLeft =
-                    MathUtils.constrain(centerX / mCellWidth, 0, DAYS_IN_WEEK - 1);
-            return isLayoutRtl() ? DAYS_IN_WEEK - columnFromLeft - 1 : columnFromLeft;
+                    constrain(centerX / mCellWidth, 0, DAYS_IN_WEEK - 1);
+            return columnFromLeft;
         }
     }
 
@@ -554,16 +447,17 @@ class MonthView extends View {
         }
     }
 
-    @Override
-    protected void onFocusLost() {
-        if (!mIsTouchHighlighted) {
-            // Unhighlight a day.
-            mPreviouslyHighlightedDay = mHighlightedDay;
-            mHighlightedDay = -1;
-            invalidate();
-        }
-        super.onFocusLost();
-    }
+//    @Override
+//    protected void onFocusLost() {
+//        if (!mIsTouchHighlighted) {
+//            // Unhighlight a day.
+//            mPreviouslyHighlightedDay = mHighlightedDay;
+//            mHighlightedDay = -1;
+//            invalidate();
+//        }
+//        super.onFocusLost();
+//    }
+//
 
     /**
      * Ensure some day is highlighted. If a day isn't highlighted, it chooses the selected day, if
@@ -600,73 +494,34 @@ class MonthView extends View {
         final int paddingTop = getPaddingTop();
         canvas.translate(paddingLeft, paddingTop);
 
-        drawMonth(canvas);
-        drawDaysOfWeek(canvas);
         drawDays(canvas);
 
         canvas.translate(-paddingLeft, -paddingTop);
     }
 
-    private void drawMonth(Canvas canvas) {
-        final float x = mPaddedWidth / 2f;
-
-        // Vertically centered within the month header height.
-        final float lineHeight = mMonthPaint.ascent() + mMonthPaint.descent();
-        final float y = (mMonthHeight - lineHeight) / 2f;
-
-        canvas.drawText(mMonthYearLabel, x, y, mMonthPaint);
-    }
 
     public String getMonthYearLabel() {
         return mMonthYearLabel;
     }
 
-    private void drawDaysOfWeek(Canvas canvas) {
-        final TextPaint p = mDayOfWeekPaint;
-        final int headerHeight = mMonthHeight;
-        final int rowHeight = mDayOfWeekHeight;
-        final int colWidth = mCellWidth;
-
-        // Text is vertically centered within the day of week height.
-        final float halfLineHeight = (p.ascent() + p.descent()) / 2f;
-        final int rowCenter = headerHeight + rowHeight / 2;
-
-        for (int col = 0; col < DAYS_IN_WEEK; col++) {
-            final int colCenter = colWidth * col + colWidth / 2;
-            final int colCenterRtl;
-            if (isLayoutRtl()) {
-                colCenterRtl = mPaddedWidth - colCenter;
-            } else {
-                colCenterRtl = colCenter;
-            }
-
-            final String label = mDayOfWeekLabels[col];
-            canvas.drawText(label, colCenterRtl, rowCenter - halfLineHeight, p);
-        }
-    }
 
     /**
      * Draws the month days.
      */
     private void drawDays(Canvas canvas) {
         final TextPaint p = mDayPaint;
-        final int headerHeight = mMonthHeight + mDayOfWeekHeight;
+
         final int rowHeight = mDayHeight;
         final int colWidth = mCellWidth;
 
         // Text is vertically centered within the row height.
         final float halfLineHeight = (p.ascent() + p.descent()) / 2f;
-        int rowCenter = headerHeight + rowHeight / 2;
+        int rowCenter = rowHeight / 2;
 
         for (int day = 1, col = findDayOffset(); day <= mDaysInMonth; day++) {
             final int colCenter = colWidth * col + colWidth / 2;
             final int colCenterRtl;
-            if (isLayoutRtl()) {
-                colCenterRtl = mPaddedWidth - colCenter;
-            } else {
-                colCenterRtl = colCenter;
-            }
-
+            colCenterRtl = colCenter;
             int stateMask = 0;
 
             final boolean isDayEnabled = isDayEnabled(day);
@@ -703,7 +558,7 @@ class MonthView extends View {
             }
             p.setColor(dayTextColor);
 
-            canvas.drawText(mDayFormatter.format(day), colCenterRtl, rowCenter - halfLineHeight, p);
+            canvas.drawText(String.valueOf(day), colCenterRtl, rowCenter - halfLineHeight, p);
 
             col++;
 
@@ -738,8 +593,6 @@ class MonthView extends View {
     public void setSelectedDay(int dayOfMonth) {
         mActivatedDay = dayOfMonth;
 
-        // Invalidate cached accessibility information.
-        mTouchHelper.invalidateRoot();
         invalidate();
     }
 
@@ -753,10 +606,9 @@ class MonthView extends View {
         if (isValidDayOfWeek(weekStart)) {
             mWeekStart = weekStart;
         } else {
-            mWeekStart = mCalendar.getFirstDayOfWeek();
+            mWeekStart = CalendarUtils.getFirstDayOfWeek();
         }
-        // Invalidate cached accessibility information.
-        mTouchHelper.invalidateRoot();
+
         invalidate();
     }
 
@@ -783,78 +635,44 @@ class MonthView extends View {
         }
         mYear = year;
 
-        mCalendar.set(Calendar.MONTH, mMonth);
-        mCalendar.set(Calendar.YEAR, mYear);
-        mCalendar.set(Calendar.DAY_OF_MONTH, 1);
-        mDayOfWeekStart = mCalendar.get(Calendar.DAY_OF_WEEK);
+        LocalDate localDate = LocalDate.of(mYear, mMonth, 1);
+        //获取本月第一天是星期几
+        mDayOfWeekStart = localDate.getDayOfWeek().getValue();
 
         if (isValidDayOfWeek(weekStart)) {
             mWeekStart = weekStart;
         } else {
-            mWeekStart = mCalendar.getFirstDayOfWeek();
+            mWeekStart = DayOfWeek.SUNDAY.getValue();
         }
+        mDaysInMonth = localDate.lengthOfMonth();
 
-        // Figure out what day today is.
-        final Calendar today = Calendar.getInstance();
         mToday = -1;
-        mDaysInMonth = getDaysInMonth(mMonth, mYear);
-        for (int i = 0; i < mDaysInMonth; i++) {
-            final int day = i + 1;
-            if (sameDay(day, today)) {
-                mToday = day;
-            }
+        final LocalDate nowDate = LocalDate.now();
+        if (nowDate.getYear() == year && nowDate.getMonthValue() == month) {
+            mToday = nowDate.getDayOfMonth();
         }
 
-        mEnabledDayStart = MathUtils.constrain(enabledDayStart, 1, mDaysInMonth);
-        mEnabledDayEnd = MathUtils.constrain(enabledDayEnd, mEnabledDayStart, mDaysInMonth);
+        mEnabledDayStart = enabledDayStart;
+        mEnabledDayEnd = enabledDayEnd;
 
         updateMonthYearLabel();
-        updateDayOfWeekLabels();
-
-        // Invalidate cached accessibility information.
-        mTouchHelper.invalidateRoot();
         invalidate();
     }
 
-    private static int getDaysInMonth(int month, int year) {
-        switch (month) {
-            case Calendar.JANUARY:
-            case Calendar.MARCH:
-            case Calendar.MAY:
-            case Calendar.JULY:
-            case Calendar.AUGUST:
-            case Calendar.OCTOBER:
-            case Calendar.DECEMBER:
-                return 31;
-            case Calendar.APRIL:
-            case Calendar.JUNE:
-            case Calendar.SEPTEMBER:
-            case Calendar.NOVEMBER:
-                return 30;
-            case Calendar.FEBRUARY:
-                return (year % 4 == 0) ? 29 : 28;
-            default:
-                throw new IllegalArgumentException("Invalid Month");
-        }
-    }
 
-    private boolean sameDay(int day, Calendar today) {
-        return mYear == today.get(Calendar.YEAR) && mMonth == today.get(Calendar.MONTH)
-                && day == today.get(Calendar.DAY_OF_MONTH);
-    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+
         final int preferredHeight = mDesiredDayHeight * MAX_WEEKS_IN_MONTH
-                + mDesiredDayOfWeekHeight + mDesiredMonthHeight
                 + getPaddingTop() + getPaddingBottom();
         final int preferredWidth = mDesiredCellWidth * DAYS_IN_WEEK
-                + getPaddingStart() + getPaddingEnd();
+                + ViewCompat.getPaddingStart(this) + ViewCompat.getPaddingEnd(this);
+
         final int resolvedWidth = resolveSize(preferredWidth, widthMeasureSpec);
         final int resolvedHeight = resolveSize(preferredHeight, heightMeasureSpec);
         setMeasuredDimension(resolvedWidth, resolvedHeight);
     }
-
 
 
     @Override
@@ -862,7 +680,6 @@ class MonthView extends View {
         if (!changed) {
             return;
         }
-
         // Let's initialize a completely reasonable number of variables.
         final int w = right - left;
         final int h = bottom - top;
@@ -877,7 +694,7 @@ class MonthView extends View {
         if (paddedWidth == mPaddedWidth || paddedHeight == mPaddedHeight) {
             return;
         }
-
+        //不含Padding的宽 高
         mPaddedWidth = paddedWidth;
         mPaddedHeight = paddedHeight;
 
@@ -885,10 +702,7 @@ class MonthView extends View {
         // scale all dimensions to fit.
         final int measuredPaddedHeight = getMeasuredHeight() - paddingTop - paddingBottom;
         final float scaleH = paddedHeight / (float) measuredPaddedHeight;
-        final int monthHeight = (int) (mDesiredMonthHeight * scaleH);
         final int cellWidth = mPaddedWidth / DAYS_IN_WEEK;
-        mMonthHeight = monthHeight;
-        mDayOfWeekHeight = (int) (mDesiredDayOfWeekHeight * scaleH);
         mDayHeight = (int) (mDesiredDayHeight * scaleH);
         mCellWidth = cellWidth;
 
@@ -899,9 +713,8 @@ class MonthView extends View {
         mDaySelectorRadius = Math.min(mDesiredDaySelectorRadius,
                 Math.min(maxSelectorWidth, maxSelectorHeight));
 
-        // Invalidate cached accessibility information.
-        mTouchHelper.invalidateRoot();
     }
+
 
     private int findDayOffset() {
         final int offset = mDayOfWeekStart - mWeekStart;
@@ -925,21 +738,18 @@ class MonthView extends View {
             return -1;
         }
 
-        final int headerHeight = mMonthHeight + mDayOfWeekHeight;
         final int paddedY = y - getPaddingTop();
-        if (paddedY < headerHeight || paddedY >= mPaddedHeight) {
+        if (paddedY >= mPaddedHeight) {
             return -1;
         }
 
         // Adjust for RTL after applying padding.
         final int paddedXRtl;
-        if (isLayoutRtl()) {
-            paddedXRtl = mPaddedWidth - paddedX;
-        } else {
-            paddedXRtl = paddedX;
-        }
 
-        final int row = (paddedY - headerHeight) / mDayHeight;
+        paddedXRtl = paddedX;
+
+
+        final int row = paddedY / mDayHeight;
         final int col = (paddedXRtl * DAYS_IN_WEEK) / mPaddedWidth;
         final int index = col + row * DAYS_IN_WEEK;
         final int day = index + 1 - findDayOffset();
@@ -967,17 +777,15 @@ class MonthView extends View {
         final int col = index % DAYS_IN_WEEK;
         final int colWidth = mCellWidth;
         final int left;
-        if (isLayoutRtl()) {
-            left = getWidth() - getPaddingRight() - (col + 1) * colWidth;
-        } else {
-            left = getPaddingLeft() + col * colWidth;
-        }
+
+        left = getPaddingLeft() + col * colWidth;
+
 
         // Compute top edge.
         final int row = index / DAYS_IN_WEEK;
         final int rowHeight = mDayHeight;
-        final int headerHeight = mMonthHeight + mDayOfWeekHeight;
-        final int top = getPaddingTop() + headerHeight + row * rowHeight;
+
+        final int top = getPaddingTop() + row * rowHeight;
 
         outBounds.set(left, top, left + colWidth, top + rowHeight);
 
@@ -996,126 +804,21 @@ class MonthView extends View {
         }
 
         if (mOnDayClickListener != null) {
-            final Calendar date = Calendar.getInstance();
-            date.set(mYear, mMonth, day);
+            final LocalDate date = LocalDate.of(mYear, mMonth, day);
             mOnDayClickListener.onDayClick(this, date);
         }
-
-        // This is a no-op if accessibility is turned off.
-        mTouchHelper.sendEventForVirtualView(day, AccessibilityEvent.TYPE_VIEW_CLICKED);
         return true;
     }
 
-    /**
-     * Provides a virtual view hierarchy for interfacing with an accessibility service.
-     */
-    private class MonthViewTouchHelper extends ExploreByTouchHelper {
-        private static final String DATE_FORMAT = "dd MMMM yyyy";
-
-        private final Rect mTempRect = new Rect();
-        private final Calendar mTempCalendar = Calendar.getInstance();
-
-        public MonthViewTouchHelper(View host) {
-            super(host);
-        }
-
-        @Override
-        protected int getVirtualViewAt(float x, float y) {
-            final int day = getDayAtLocation((int) (x + 0.5f), (int) (y + 0.5f));
-            if (day != -1) {
-                return day;
-            }
-            return ExploreByTouchHelper.INVALID_ID;
-        }
-
-        @Override
-        protected void getVisibleVirtualViews(List<Integer> virtualViewIds) {
-            for (int day = 1; day <= mDaysInMonth; day++) {
-                virtualViewIds.add(day);
-            }
-        }
-
-        @Override
-        protected void onPopulateEventForVirtualView(int virtualViewId, AccessibilityEvent event) {
-            event.setContentDescription(getDayDescription(virtualViewId));
-        }
-
-        @Override
-        protected void onPopulateNodeForVirtualView(int virtualViewId, AccessibilityNodeInfoCompat node) {
-            final boolean hasBounds = getBoundsForDay(virtualViewId, mTempRect);
-
-            if (!hasBounds) {
-                // The day is invalid, kill the node.
-                mTempRect.setEmpty();
-                node.setContentDescription("");
-                node.setBoundsInParent(mTempRect);
-                node.setVisibleToUser(false);
-                return;
-            }
-
-            node.setText(getDayText(virtualViewId));
-            node.setContentDescription(getDayDescription(virtualViewId));
-            node.setBoundsInParent(mTempRect);
-
-            final boolean isDayEnabled = isDayEnabled(virtualViewId);
-            if (isDayEnabled) {
-                node.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK);
-            }
-
-            node.setEnabled(isDayEnabled);
-
-            if (virtualViewId == mActivatedDay) {
-                // TODO: This should use activated once that's supported.
-                node.setChecked(true);
-            }
-        }
-
-
-        @Override
-        protected boolean onPerformActionForVirtualView(int virtualViewId, int action,
-                                                        Bundle arguments) {
-            switch (action) {
-                case AccessibilityNodeInfo.ACTION_CLICK:
-                    return onDayClicked(virtualViewId);
-            }
-
-            return false;
-        }
-
-        /**
-         * Generates a description for a given virtual view.
-         *
-         * @param id the day to generate a description for
-         * @return a description of the virtual view
-         */
-        private CharSequence getDayDescription(int id) {
-            if (isValidDayOfMonth(id)) {
-                mTempCalendar.set(mYear, mMonth, id);
-                return DateFormat.format(DATE_FORMAT, mTempCalendar.getTimeInMillis());
-            }
-
-            return "";
-        }
-
-        /**
-         * Generates displayed text for a given virtual view.
-         *
-         * @param id the day to generate text for
-         * @return the visible text of the virtual view
-         */
-        private CharSequence getDayText(int id) {
-            if (isValidDayOfMonth(id)) {
-                return mDayFormatter.format(id);
-            }
-
-            return null;
-        }
-    }
 
     /**
      * Handles callbacks when the user clicks on a time object.
      */
     public interface OnDayClickListener {
         void onDayClick(MonthView view, LocalDate day);
+    }
+
+    private int constrain(int amount, int low, int high) {
+        return amount < low ? low : (amount > high ? high : amount);
     }
 }
