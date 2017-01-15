@@ -5,7 +5,6 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-
 import android.support.annotation.ColorInt;
 import android.support.annotation.IntRange;
 import android.text.TextPaint;
@@ -105,10 +104,11 @@ public class WeekBarView extends View {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
         if (heightMode == MeasureSpec.AT_MOST) { // 没有指定值的情况下,设置默认高度为32dp
-            heightSize = mMetrics.densityDpi * 36;
+            heightSize = (int) (mMetrics.density * 36 + 0.5f);
+
         }
         if (widthMode == MeasureSpec.AT_MOST) {
-            widthSize = mMetrics.densityDpi * 300;
+            widthSize = (int) (mMetrics.density * 300 + 0.5f);
         }
         setMeasuredDimension(widthSize, heightSize);
     }
@@ -119,14 +119,14 @@ public class WeekBarView extends View {
         final TextPaint p = mDayOfWeekPaint;
         final int rowHeight = getHeight();
         final int colWidth = getWidth() / 7;
+
         // 计算文本和行高,用来使文本居中显示
         final float halfLineHeight = (p.ascent() + p.descent()) / 2;
         final int rowCenter = rowHeight / 2;
         //绘制周label eg  Mon ,Thu...
         for (int i = 0; i < mDayOfWeekLabels.length; i++) {
             final String label = mDayOfWeekLabels[i];
-            int labelWith = (int) p.measureText(label);
-            int startX = colWidth * i + (colWidth - labelWith) / 2;
+            int startX = colWidth * i + colWidth  / 2;
             canvas.drawText(label, startX, rowCenter - halfLineHeight, p);
         }
     }

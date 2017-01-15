@@ -2,7 +2,7 @@ package com.example.calendar_agenda;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
+import android.support.annotation.ColorInt;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -28,9 +28,10 @@ import java.util.Calendar;
  * An adapter for a list of {@link MonthView} items.
  */
 class CalendarPickerPagerAdapter extends PagerAdapter {
+    private static final int MONTHS_IN_YEAR = 12;
 
-    private  LocalDate mMinDate = LocalDate.MIN;
-    private  LocalDate mMaxDate = LocalDate.MAX;
+    private LocalDate mMinDate = LocalDate.MIN;
+    private LocalDate mMaxDate = LocalDate.MAX;
 
     private final SparseArray<ViewHolder> mItems = new SparseArray<>();
 
@@ -41,8 +42,8 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
     private LocalDate mSelectedDay = null;
 
     private int mDayTextAppearance;
-
-    private ColorStateList mCalendarTextColor;
+    @ColorInt
+    private int mCalendarTextColor;
     private ColorStateList mDaySelectorColor;
     private ColorStateList mDayHighlightColor;
 
@@ -57,18 +58,14 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         mLayoutResId = layoutResId;
         mCalendarViewId = calendarViewId;
 
-        final TypedArray ta = context.obtainStyledAttributes(new int[]{
-                com.android.internal.R.attr.colorControlHighlight});
-        mDayHighlightColor = ta.getColorStateList(0);
-        ta.recycle();
     }
 
     public void setRange(@NonNull LocalDate min, @NonNull LocalDate max) {
         mMinDate = min;
         mMaxDate = max;
-
-        Period period = Period.between(min, max);
-        mCount = period.getMonths();
+        final int diffYear = max.getYear() - min.getYear();
+        final int diffMonth = max.getMonthValue() - min.getMonthValue();
+        mCount = diffMonth + MONTHS_IN_YEAR * diffYear + 1;
         // Positions are now invalid, clear everything and start over.
         notifyDataSetChanged();
     }
@@ -130,7 +127,7 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
         mOnDaySelectedListener = listener;
     }
 
-    void setCalendarTextColor(ColorStateList calendarTextColor) {
+    void setCalendarTextColor(@ColorInt int calendarTextColor) {
         mCalendarTextColor = calendarTextColor;
         notifyDataSetChanged();
     }
@@ -176,17 +173,14 @@ class CalendarPickerPagerAdapter extends PagerAdapter {
 
         final MonthView v = (MonthView) itemView.findViewById(mCalendarViewId);
         v.setOnDayClickListener(mOnDayClickListener);
-        v.setDayTextAppearance(mDayTextAppearance);
+        //  v.setDayTextAppearance(mDayTextAppearance);
 
-        if (mDaySelectorColor != null) {
-            v.setDaySelectorColor(mDaySelectorColor);
-        }
+//        if (mDaySelectorColor != null) {
+//            v.setDaySelectorColor(mDaySelectorColor);
+//        }
 
-        if (mDayHighlightColor != null) {
-            v.setDayHighlightColor(mDayHighlightColor);
-        }
 
-        if (mCalendarTextColor != null) {
+        if (mCalendarTextColor != 0) {
             v.setDayTextColor(mCalendarTextColor);
         }
 

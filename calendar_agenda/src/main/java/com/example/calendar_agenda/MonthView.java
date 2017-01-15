@@ -16,7 +16,6 @@ import android.support.v4.view.ViewCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.MonthDisplayHelper;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -26,10 +25,8 @@ import com.example.calendar_agenda.util.CalendarUtils;
 
 import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.format.DateTimeFormatter;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -115,7 +112,7 @@ class MonthView extends View {
      */
     private OnDayClickListener mOnDayClickListener;
 
-    private List<Integer> mEventDay;
+    private List<Integer> mEventDay = Arrays.asList(5, 9);
 
     @ColorInt
     private int mDayTextColor;
@@ -127,10 +124,6 @@ class MonthView extends View {
 
     private LunarCalendar[][] mLunarMonth;
 
-
-    private int mHighlightedDay = -1;
-    private int mPreviouslyHighlightedDay = -1;
-    private boolean mIsTouchHighlighted = false;
 
     public MonthView(Context context) {
         this(context, null);
@@ -144,9 +137,9 @@ class MonthView extends View {
         super(context, attrs, defStyleAttr);
         final Resources res = context.getResources();
         DisplayMetrics displayMetrics = res.getDisplayMetrics();
-        mDesiredCellWidth = 40 * displayMetrics.densityDpi;
-        mDesiredDayHeight = 44 * displayMetrics.densityDpi;
-        mDesiredDaySelectorRadius = 20 * displayMetrics.densityDpi;
+        mDesiredCellWidth = (int) (displayMetrics.density * 40 + 0.5f);
+        mDesiredDayHeight = (int) (displayMetrics.density * 44 + 0.5f);
+        mDesiredDaySelectorRadius = (int) (displayMetrics.density * 20 + 0.5f);
 
         mDayDisableTextColor = ContextCompat.getColor(context, android.R.color.darker_gray);
         mDayActivatedTextColor = Color.WHITE;
@@ -154,26 +147,29 @@ class MonthView extends View {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
-        updateMonthYearLabel();
+        // updateMonthYearLabel();
         initPaints(res);
         mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
             public boolean onSingleTapUp(MotionEvent event) {
-                final int x = (int) (event.getX() + 0.5f);
+git                final int x = (int) (event.getX() + 0.5f);
                 final int y = (int) (event.getY() + 0.5f);
                 final int clickedDay = getDayAtLocation(x, y);
                 onDayClicked(clickedDay);
                 return true;
             }
         });
-        if (isShowLunar) {
-            mLunarMonth = LunarCalendar.getInstanceMonth(mYear, mMonth);
-        }
+
     }
 
 
     private void updateMonthYearLabel() {
-        mMonthYearLabel = YearMonth.of(mYear, mMonth).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        //  mMonthYearLabel = YearMonth.of(mYear, mMonth).format(DateTimeFormatter.ISO_INSTANT);
     }
 
 
@@ -198,6 +194,7 @@ class MonthView extends View {
 
         mDaySelectorPaint.setAntiAlias(true);
         mDaySelectorPaint.setStyle(Paint.Style.FILL);
+        mDaySelectorPaint.setColor(ContextCompat.getColor(getContext(), R.color.md_deep_orange_A200));
 
         mSolarDayPaint.setAntiAlias(true);
         mSolarDayPaint.setTextSize(dayTextSize);
@@ -509,7 +506,7 @@ class MonthView extends View {
         p.setColor(Color.RED);
         float distance = (float) (Math.sin(45) * mDaySelectorRadius); //计算绘制坐标X,Y偏移量
         //圆点半径 16px
-        final int radius = 16;n
+        final int radius = 10  ;
 
         for (Integer day : mEventDay) {
             //根据天定位到 坐标 [row][col]
@@ -519,7 +516,7 @@ class MonthView extends View {
             final int colCenter = colWidth * col + colWidth / 2;
             final int rowCenter = rowHeight * row + rowHeight / 2;
 
-            canvas.drawCircle(colCenter + distance, rowCenter + distance, radius, p);
+            canvas.drawCircle(colCenter + distance, rowCenter - distance, radius, p);
 
         }
 
@@ -537,7 +534,7 @@ class MonthView extends View {
     private void drawDays(Canvas canvas) {
         final TextPaint solarP = mSolarDayPaint;
         final TextPaint lunarP = mLunarDayPaint;
-
+        lunarP.setTextSize(solarP.getTextSize()*0.75f);
         final int rowHeight = mDayHeight;
         final int colWidth = mCellWidth;
 
@@ -590,10 +587,13 @@ class MonthView extends View {
             canvas.drawText(String.valueOf(day), colCenter, solarBaseLineY, solarP);
             if (isShowLunar && mLunarMonth != null) {
                 lunarBaseLineY = calculateBaseLineY(rowCenter, lunarP) + lOffset;
-                LunarCalendar lunar = mLunarMonth[rowCenter % rowHeight][col];
-                String lunarText = lunar.getSubTitle();
-                lunarP.setColor(dayTextColor);
-                canvas.drawText(lunarText, colCenter, lunarBaseLineY, lunarP);
+                LunarCalendar lunar = mLunarMonth[rowCenter / rowHeight][col];
+                if (lunar != null) {
+                    String lunarText = lunar.getLunarDay();
+                    lunarP.setColor(dayTextColor);
+                    canvas.drawText(lunarText, colCenter, lunarBaseLineY, lunarP);
+                }
+
             }
 
             col++;
@@ -705,6 +705,9 @@ class MonthView extends View {
         mEnabledDayEnd = enabledDayEnd;
 
         updateMonthYearLabel();
+        if (isShowLunar) {
+            mLunarMonth = LunarCalendar.getInstanceMonth(mYear, mMonth);
+        }
         invalidate();
     }
 
@@ -791,14 +794,9 @@ class MonthView extends View {
             return -1;
         }
 
-        // Adjust for RTL after applying padding.
-        final int paddedXRtl;
-
-        paddedXRtl = paddedX;
-
 
         final int row = paddedY / mDayHeight;
-        final int col = (paddedXRtl * DAYS_IN_WEEK) / mPaddedWidth;
+        final int col = (paddedX * DAYS_IN_WEEK) / mPaddedWidth;
         final int index = col + row * DAYS_IN_WEEK;
         final int day = index + 1 - findDayOffset();
         if (!isValidDayOfMonth(day)) {

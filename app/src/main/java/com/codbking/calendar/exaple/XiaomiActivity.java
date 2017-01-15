@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -14,9 +13,7 @@ import com.codbking.calendar.CalendarAdapter;
 import com.codbking.calendar.CalendarBean;
 import com.codbking.calendar.CalendarDateView;
 import com.codbking.calendar.CalendarUtil;
-
-
-import org.threeten.bp.Clock;
+import com.codbking.calendar.CalendarView;
 
 import java.util.Date;
 

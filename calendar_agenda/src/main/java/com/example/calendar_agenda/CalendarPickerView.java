@@ -4,21 +4,19 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Month;
 import org.threeten.bp.Period;
 import org.threeten.bp.format.DateTimeParseException;
-
-import java.util.Calendar;
 
 
 /**
@@ -30,10 +28,6 @@ import java.util.Calendar;
 class CalendarPickerView extends LinearLayout {
     public static final String TAG = CalendarPickerView.class.getSimpleName();
 
-    private static final int DEFAULT_LAYOUT = R.layout.layout_moth_view_pager;
-
-
-    private static final int[] ATTRS_TEXT_COLOR = new int[]{android.R.attr.textColor};
 
     private LocalDate mSelectedDay;
     private LocalDate mMinDate = LocalDate.of(1900, Month.JANUARY, 1);
@@ -64,7 +58,7 @@ class CalendarPickerView extends LinearLayout {
                 R.styleable.CalendarPickerView, defStyleAttr, defStyleAttr);
 
         final int firstDayOfWeek = a.getInt(R.styleable.CalendarPickerView_cpv_first_day_of_week,
-                Calendar.SUNDAY);
+                DayOfWeek.SUNDAY.getValue());
 
         final String minDateStr = a.getString(R.styleable.CalendarPickerView_cpv_min_date);
         final String maxDateStr = a.getString(R.styleable.CalendarPickerView_cpv_max_date);
@@ -87,16 +81,14 @@ class CalendarPickerView extends LinearLayout {
         // Set up adapter.
         mAdapter = new CalendarPickerPagerAdapter(context,
                 R.layout.layout_month_view, R.id.month_view);
-
-        mAdapter.setDayTextAppearance(dayTextAppearanceResId);
-        mAdapter.setDaySelectorColor(daySelectorColor);
+        mAdapter.setCalendarTextColor(ContextCompat.getColor(getContext(), R.color.md_textBlack_text));
 
         final LayoutInflater inflater = LayoutInflater.from(context);
         mViewPager = (ViewPager) inflater.inflate(R.layout.layout_moth_view_pager, this, false);
         mWeekBarView = (WeekBarView) inflater.inflate(R.layout.layout_week_bar, this, false);
-        addView(mWeekBarView);
-        addView(mViewPager);
+
         mViewPager.setAdapter(mAdapter);
+
 
         // Set up min and max dates. 设置最小时间和最大时间
         try {
@@ -137,6 +129,8 @@ class CalendarPickerView extends LinearLayout {
                 }
             }
         });
+        addView(mWeekBarView);
+        addView(mViewPager);
     }
 
 
@@ -236,7 +230,8 @@ class CalendarPickerView extends LinearLayout {
     private int getPositionFromDay(LocalDate localDate) {
         final int totalMonth = mAdapter.getCount();
         //计算给定日期和最小日期之间有几个月，   diff moth between mMinDate and params
-        final int diffMonth = Period.between(mMinDate, localDate).getMonths();
+        final Period period = Period.between(mMinDate, localDate);
+        final int diffMonth = period.getMonths() + period.getYears() * 12;
         return constrain(diffMonth, 0, totalMonth - 1);
     }
 

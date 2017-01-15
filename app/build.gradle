@@ -31,5 +31,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
     testCompile 'junit:junit:4.12'
     compile project(':mylibrary')
+    compile project(':calendar_agenda')
 
 }
