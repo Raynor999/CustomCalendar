@@ -1,4 +1,4 @@
-package com.example.calendar_agenda;
+package com.example.calendar_agenda.month;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -20,11 +20,15 @@ import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CalendarView;
 
+import com.example.calendar_agenda.R;
 import com.example.calendar_agenda.util.CalendarUtils;
 
 import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -63,7 +67,7 @@ class MonthView extends View {
     private String mMonthYearLabel;
 
     private int mMonth = 1;
-    private int mYear;
+    private int mYear = 1900;
 
     private int mDayHeight;
     private int mCellWidth;
@@ -157,7 +161,7 @@ class MonthView extends View {
 
             @Override
             public boolean onSingleTapUp(MotionEvent event) {
-git                final int x = (int) (event.getX() + 0.5f);
+                final int x = (int) (event.getX() + 0.5f);
                 final int y = (int) (event.getY() + 0.5f);
                 final int clickedDay = getDayAtLocation(x, y);
                 onDayClicked(clickedDay);
@@ -169,7 +173,8 @@ git                final int x = (int) (event.getX() + 0.5f);
 
 
     private void updateMonthYearLabel() {
-        //  mMonthYearLabel = YearMonth.of(mYear, mMonth).format(DateTimeFormatter.ISO_INSTANT);
+
+        mMonthYearLabel = YearMonth.of(mYear, mMonth).format(DateTimeFormatter.ofPattern("yyyy年MM月"));
     }
 
 
@@ -225,201 +230,6 @@ git                final int x = (int) (event.getX() + 0.5f);
         return mGestureDetector.onTouchEvent(event);
     }
 
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        final int x = (int) (event.getX() + 0.5f);
-//        final int y = (int) (event.getY() + 0.5f);
-//
-//        final int action = event.getAction();
-//        switch (action) {
-//            case MotionEvent.ACTION_DOWN:
-//            case MotionEvent.ACTION_MOVE:
-//                final int touchedItem = getDayAtLocation(x, y);
-//                mIsTouchHighlighted = true;
-//                if (mHighlightedDay != touchedItem) {
-//                    mHighlightedDay = touchedItem;
-//                    mPreviouslyHighlightedDay = touchedItem;
-//                    invalidate();
-//                }
-//                if (action == MotionEvent.ACTION_DOWN && touchedItem < 0) {
-//                    // Touch something that's not an item, reject event.
-//                    return false;
-//                }
-//                break;
-//
-//            case MotionEvent.ACTION_UP:
-//                final int clickedDay = getDayAtLocation(x, y);
-//                onDayClicked(clickedDay);
-//                // Fall through.
-//            case MotionEvent.ACTION_CANCEL:
-//                // Reset touched day on stream end.
-//                mHighlightedDay = -1;
-//                mIsTouchHighlighted = false;
-//                invalidate();
-//                break;
-//        }
-//        return true;
-//    }
-
-//    @SuppressWarnings("WrongConstant")
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        // We need to handle focus change within the SimpleMonthView because we are simulating
-//        // multiple Views. The arrow keys will move between days until there is no space (no
-//        // day to the left, top, right, or bottom). Focus forward and back jumps out of the
-//        // SimpleMonthView, skipping over other SimpleMonthViews in the parent ViewPager
-//        // to the next focusable View in the hierarchy.
-//        boolean focusChanged = false;
-//        switch (event.getKeyCode()) {
-//            case KeyEvent.KEYCODE_DPAD_LEFT:
-//                if (event.hasNoModifiers()) {
-//                    focusChanged = moveOneDay(false);
-//                }
-//                break;
-//            case KeyEvent.KEYCODE_DPAD_RIGHT:
-//                if (event.hasNoModifiers()) {
-//                    focusChanged = moveOneDay(true);
-//                }
-//                break;
-//            case KeyEvent.KEYCODE_DPAD_UP:
-//                if (event.hasNoModifiers()) {
-//                    ensureFocusedDay();
-//                    if (mHighlightedDay > 7) {
-//                        mHighlightedDay -= 7;
-//                        focusChanged = true;
-//                    }
-//                }
-//                break;
-//            case KeyEvent.KEYCODE_DPAD_DOWN:
-//                if (event.hasNoModifiers()) {
-//                    ensureFocusedDay();
-//                    if (mHighlightedDay <= mDaysInMonth - 7) {
-//                        mHighlightedDay += 7;
-//                        focusChanged = true;
-//                    }
-//                }
-//                break;
-//            case KeyEvent.KEYCODE_DPAD_CENTER:
-//            case KeyEvent.KEYCODE_ENTER:
-//                if (mHighlightedDay != -1) {
-//                    onDayClicked(mHighlightedDay);
-//                    return true;
-//                }
-//                break;
-//            case KeyEvent.KEYCODE_TAB: {
-//                int focusChangeDirection = 0;
-//                if (event.hasNoModifiers()) {
-//                    focusChangeDirection = View.FOCUS_FORWARD;
-//                } else if (event.hasModifiers(KeyEvent.META_SHIFT_ON)) {
-//                    focusChangeDirection = View.FOCUS_BACKWARD;
-//                }
-//                if (focusChangeDirection != 0) {
-//                    final ViewParent parent = getParent();
-//                    // move out of the ViewPager next/previous
-//                    View nextFocus = this;
-//                    do {
-//                        nextFocus = nextFocus.focusSearch(focusChangeDirection);
-//                    } while (nextFocus != null && nextFocus != this &&
-//                            nextFocus.getParent() == parent);
-//                    if (nextFocus != null) {
-//                        nextFocus.requestFocus();
-//                        return true;
-//                    }
-//                }
-//                break;
-//            }
-//        }
-//        if (focusChanged) {
-//            invalidate();
-//            return true;
-//        } else {
-//            return super.onKeyDown(keyCode, event);
-//        }
-//    }
-
-//    private boolean moveOneDay(boolean positive) {
-//        ensureFocusedDay();
-//        boolean focusChanged = false;
-//        if (positive) {
-//            if (!isLastDayOfWeek(mHighlightedDay) && mHighlightedDay < mDaysInMonth) {
-//                mHighlightedDay++;
-//                focusChanged = true;
-//            }
-//        } else {
-//            if (!isFirstDayOfWeek(mHighlightedDay) && mHighlightedDay > 1) {
-//                mHighlightedDay--;
-//                focusChanged = true;
-//            }
-//        }
-//        return focusChanged;
-//    }
-//
-//    @Override
-//    protected void onFocusChanged(boolean gainFocus, @ViewCompat.FocusDirection int direction,
-//                                  @Nullable Rect previouslyFocusedRect) {
-//        if (gainFocus) {
-//            // If we've gained focus through arrow keys, we should find the day closest
-//            // to the focus rect. If we've gained focus through forward/back, we should
-//            // focus on the selected day if there is one.
-//            final int offset = findDayOffset();
-//            switch (direction) {
-//                case View.FOCUS_RIGHT: {
-//                    int row = findClosestRow(previouslyFocusedRect);
-//                    mHighlightedDay = row == 0 ? 1 : (row * DAYS_IN_WEEK) - offset + 1;
-//                    break;
-//                }
-//                case View.FOCUS_LEFT: {
-//                    int row = findClosestRow(previouslyFocusedRect) + 1;
-//                    mHighlightedDay = Math.min(mDaysInMonth, (row * DAYS_IN_WEEK) - offset);
-//                    break;
-//                }
-//                case View.FOCUS_DOWN: {
-//                    final int col = findClosestColumn(previouslyFocusedRect);
-//                    final int day = col - offset + 1;
-//                    mHighlightedDay = day < 1 ? day + DAYS_IN_WEEK : day;
-//                    break;
-//                }
-//                case View.FOCUS_UP: {
-//                    final int col = findClosestColumn(previouslyFocusedRect);
-//                    final int maxWeeks = (offset + mDaysInMonth) / DAYS_IN_WEEK;
-//                    final int day = col - offset + (DAYS_IN_WEEK * maxWeeks) + 1;
-//                    mHighlightedDay = day > mDaysInMonth ? day - DAYS_IN_WEEK : day;
-//                    break;
-//                }
-//            }
-//            ensureFocusedDay();
-//            invalidate();
-//        }
-//        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
-//    }
-
-//    /**
-//     * Returns the row (0 indexed) closest to previouslyFocusedRect or center if null.
-//     */
-//    private int findClosestRow(@Nullable Rect previouslyFocusedRect) {
-//        if (previouslyFocusedRect == null) {
-//            return 3;
-//        } else {
-//            int centerY = previouslyFocusedRect.centerY();
-//
-//            final TextPaint p = mSolarDayPaint;
-//
-//            final int rowHeight = mDayHeight;
-//
-//            // Text is vertically centered within the row height.
-//            final float halfLineHeight = (p.ascent() + p.descent()) / 2f;
-//            final int rowCenter = rowHeight / 2;
-//
-//            centerY -= rowCenter - halfLineHeight;
-//            int row = Math.round(centerY / (float) rowHeight);
-//            final int maxDay = findDayOffset() + mDaysInMonth;
-//            final int maxRows = (maxDay / DAYS_IN_WEEK) - ((maxDay % DAYS_IN_WEEK == 0) ? 1 : 0);
-//
-//            row = constrain(row, 0, maxRows);
-//            return row;
-//        }
-//    }
-
     /**
      * Returns the column (0 indexed) closest to the previouslyFocusedRect or center if null. The 0
      * index is related to the first day of the week.
@@ -434,46 +244,6 @@ git                final int x = (int) (event.getX() + 0.5f);
             return columnFromLeft;
         }
     }
-
-//    @Override
-//    public void getFocusedRect(Rect r) {
-//        if (mHighlightedDay > 0) {
-//            getBoundsForDay(mHighlightedDay, r);
-//        } else {
-//            super.getFocusedRect(r);
-//        }
-//    }
-
-//    @Override
-//    protected void onFocusLost() {
-//        if (!mIsTouchHighlighted) {
-//            // Unhighlight a day.
-//            mPreviouslyHighlightedDay = mHighlightedDay;
-//            mHighlightedDay = -1;
-//            invalidate();
-//        }
-//        super.onFocusLost();
-//    }
-//
-
-//    /**
-//     * Ensure some day is highlighted. If a day isn't highlighted, it chooses the selected day, if
-//     * possible, or the first day of the month if not.
-//     */
-//    private void ensureFocusedDay() {
-//        if (mHighlightedDay != -1) {
-//            return;
-//        }
-//        if (mPreviouslyHighlightedDay != -1) {
-//            mHighlightedDay = mPreviouslyHighlightedDay;
-//            return;
-//        }
-//        if (mActivatedDay != -1) {
-//            mHighlightedDay = mActivatedDay;
-//            return;
-//        }
-//        mHighlightedDay = 1;
-//    }
 
     private boolean isFirstDayOfWeek(int day) {
         final int offset = findDayOffset();
@@ -506,11 +276,11 @@ git                final int x = (int) (event.getX() + 0.5f);
         p.setColor(Color.RED);
         float distance = (float) (Math.sin(45) * mDaySelectorRadius); //计算绘制坐标X,Y偏移量
         //圆点半径 16px
-        final int radius = 10  ;
+        final int radius = 10;
 
         for (Integer day : mEventDay) {
             //根据天定位到 坐标 [row][col]
-            int row = (day + dayOffset) / DAYS_IN_WEEK;
+            int row = (day + dayOffset - 1) / DAYS_IN_WEEK;
             int col = (day + dayOffset - 1) % DAYS_IN_WEEK;
 
             final int colCenter = colWidth * col + colWidth / 2;
@@ -534,7 +304,7 @@ git                final int x = (int) (event.getX() + 0.5f);
     private void drawDays(Canvas canvas) {
         final TextPaint solarP = mSolarDayPaint;
         final TextPaint lunarP = mLunarDayPaint;
-        lunarP.setTextSize(solarP.getTextSize()*0.75f);
+        lunarP.setTextSize(solarP.getTextSize() * 0.75f);
         final int rowHeight = mDayHeight;
         final int colWidth = mCellWidth;
 
@@ -627,11 +397,11 @@ git                final int x = (int) (event.getX() + 0.5f);
     }
 
     private static boolean isValidDayOfWeek(int day) {
-        return day >= Calendar.SUNDAY && day <= Calendar.SATURDAY;
+        return day >= 1 && day <= 7;
     }
 
     private static boolean isValidMonth(int month) {
-        return month >= Calendar.JANUARY && month <= Calendar.DECEMBER;
+        return month >= 1 && month <= 12;
     }
 
     /**
@@ -641,7 +411,6 @@ git                final int x = (int) (event.getX() + 0.5f);
      */
     public void setSelectedDay(int dayOfMonth) {
         mActivatedDay = dayOfMonth;
-
         invalidate();
     }
 
@@ -805,38 +574,6 @@ git                final int x = (int) (event.getX() + 0.5f);
 
         return day;
     }
-//
-//    /**
-//     * Calculates the bounds of the specified day.
-//     *
-//     * @param id        the day of the month
-//     * @param outBounds the rect to populate with bounds
-//     */
-//    private boolean getBoundsForDay(int id, Rect outBounds) {
-//        if (!isValidDayOfMonth(id)) {
-//            return false;
-//        }
-//
-//        final int index = id - 1 + findDayOffset();
-//
-//        // Compute left edge, taking into account RTL.
-//        final int col = index % DAYS_IN_WEEK;
-//        final int colWidth = mCellWidth;
-//        final int left;
-//
-//        left = getPaddingLeft() + col * colWidth;
-//
-//
-//        // Compute top edge.
-//        final int row = index / DAYS_IN_WEEK;
-//        final int rowHeight = mDayHeight;
-//
-//        final int top = getPaddingTop() + row * rowHeight;
-//
-//        outBounds.set(left, top, left + colWidth, top + rowHeight);
-//
-//        return true;
-//    }
 
     /**
      * Called when the user clicks on a day. Handles callbacks to the {@link OnDayClickListener} if
