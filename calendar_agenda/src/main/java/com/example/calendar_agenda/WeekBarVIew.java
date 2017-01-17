@@ -81,7 +81,7 @@ public class WeekBarView extends View {
      *
      * @param weekStart 那一天应该作为一周的开始, 有效的取值范围是 1~7,  eg 1 等价于 Mon
      */
-    public void setFirstDayOfWeek(@IntRange(from = 1, to = 7) int weekStart) {
+    public void setWeekStart(@IntRange(from = 1, to = 7) int weekStart) {
         mWeekStart = weekStart;
         updateDayOfWeekLabels();
         // Invalidate cached accessibility information.

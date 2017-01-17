@@ -9,6 +9,6 @@
         <attr name="cpv_min_date" format="string" />
         <attr name="cpv_max_date" format="string" />
         <attr name="cpv_default_state" format="string" />
-        <attr name="cpv_first_day_of_week" format="string" />
+        <attr name="cpv_week_start" format="string" />
     </declare-styleable>
 </resources>

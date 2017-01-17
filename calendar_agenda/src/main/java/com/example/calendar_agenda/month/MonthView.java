@@ -119,11 +119,11 @@ class MonthView extends View {
     private List<Integer> mEventDay = Arrays.asList(5, 9);
 
     @ColorInt
-    private int mDayTextColor;
+    private int mDayTextColor = Color.BLACK;
     @ColorInt
     private int mDayDisableTextColor;
     @ColorInt
-    private int mDayActivatedTextColor;
+    private int mDayActivatedTextColor = Color.WHITE;
 
 
     private LunarCalendar[][] mLunarMonth;
@@ -342,7 +342,7 @@ class MonthView extends View {
             final int dayTextColor;
 
 
-            if (isDayEnabled) {
+            if (!isDayEnabled) {
                 dayTextColor = mDayDisableTextColor;
             } else if (isDayToday && !isDayActivated) {
                 dayTextColor = mDaySelectorPaint.getColor();
@@ -597,7 +597,7 @@ class MonthView extends View {
     /**
      * Handles callbacks when the user clicks on a time object.
      */
-    public interface OnDayClickListener {
+     interface OnDayClickListener {
         void onDayClick(MonthView view, LocalDate day);
 
     }

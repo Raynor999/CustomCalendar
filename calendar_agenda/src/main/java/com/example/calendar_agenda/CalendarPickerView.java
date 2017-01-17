@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 
 import com.example.calendar_agenda.month.MonthAdapter;
 import com.example.calendar_agenda.util.ProxyOnDaySelectedListener;
+import com.example.calendar_agenda.week.WeekAdapter;
 
 import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
@@ -52,6 +53,13 @@ public class CalendarPickerView extends LinearLayout {
                 mOnDaySelectedListener.onDaySelected(CalendarPickerView.this, day);
             }
         }
+
+        @Override
+        public void onDaySelected(WeekAdapter adapter, LocalDate day) {
+            if (mOnDaySelectedListener != null) {
+                mOnDaySelectedListener.onDaySelected(CalendarPickerView.this, day);
+            }
+        }
     };
 
     public CalendarPickerView(Context context) {
@@ -67,7 +75,7 @@ public class CalendarPickerView extends LinearLayout {
         setOrientation(VERTICAL);
         final TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.CalendarPickerView, defStyleAttr, defStyleAttr);
-        final int firstDayOfWeek = a.getInt(R.styleable.CalendarPickerView_cpv_first_day_of_week,
+        final int weekStart = a.getInt(R.styleable.CalendarPickerView_cpv_week_start,
                 DayOfWeek.SUNDAY.getValue());
         final String minDateStr = a.getString(R.styleable.CalendarPickerView_cpv_min_date);
         final String maxDateStr = a.getString(R.styleable.CalendarPickerView_cpv_max_date);
@@ -113,7 +121,7 @@ public class CalendarPickerView extends LinearLayout {
             mSelectedDay = mMaxDate;
         }
 
-        setFirstDayOfWeek(firstDayOfWeek);
+        setWeekStart(weekStart);
         onRangeChanged();
         setDate(mSelectedDay, false);
         mMonthAdapter.setOnDaySelectedListener(mProxyListener);
@@ -126,7 +134,7 @@ public class CalendarPickerView extends LinearLayout {
      *
      * @param localDate the target day
      */
-    public void setDate(LocalDate localDate) {
+    public void setDate(@NonNull LocalDate localDate) {
         setDate(localDate, false);
     }
 
@@ -137,7 +145,7 @@ public class CalendarPickerView extends LinearLayout {
      * @param localDate the target day in milliseconds
      * @param animate   whether to smooth scroll to the new position
      */
-    public void setDate(LocalDate localDate, boolean animate) {
+    public void setDate(@NonNull LocalDate localDate, boolean animate) {
         setDate(localDate, animate, true);
     }
 
@@ -148,7 +156,7 @@ public class CalendarPickerView extends LinearLayout {
      * @param animate     whether to smooth scroll to the new position
      * @param setSelected whether to set the specified day as selected
      */
-    private void setDate(LocalDate localDate, boolean animate, boolean setSelected) {
+    private void setDate(@NonNull LocalDate localDate, boolean animate, boolean setSelected) {
         if (setSelected) {
             mSelectedDay = localDate;
         }
@@ -164,9 +172,9 @@ public class CalendarPickerView extends LinearLayout {
         return mSelectedDay;
     }
 
-    public void setFirstDayOfWeek(int firstDayOfWeek) {
-        mMonthAdapter.setFirstDayOfWeek(firstDayOfWeek);
-        mWeekBarView.setFirstDayOfWeek(firstDayOfWeek);
+    public void setWeekStart(int weekStart) {
+        mMonthAdapter.setWeekStart(weekStart);
+        mWeekBarView.setWeekStart(weekStart);
     }
 
 //    public int getFirstDayOfWeek() {
