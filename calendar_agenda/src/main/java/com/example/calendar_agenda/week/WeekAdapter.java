@@ -11,13 +11,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.calendar_agenda.month.MonthAdapter;
 import com.example.calendar_agenda.util.ProxyOnDaySelectedListener;
 
-import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.temporal.ChronoUnit;
-import org.threeten.bp.temporal.WeekFields;
 
 import java.util.Calendar;
 
@@ -33,6 +30,9 @@ public class WeekAdapter extends PagerAdapter {
     private LocalDate mMinDate = LocalDate.MIN;
     //日历截止日期
     private LocalDate mMaxDate = LocalDate.MAX;
+
+    // 周视图,起始的日期(可能比最小值小)
+    private LocalDate mStartDate;
 
     private final SparseArray<WeekView> mWeekViews = new SparseArray<>();
 
@@ -64,7 +64,7 @@ public class WeekAdapter extends PagerAdapter {
     /**
      * 日历设置的 周首日 (eg US 周日开头, 法国 周一开头)
      */
-    private int mFirstDayOfWeek;
+    private int mWeekStart;
 
     public void setRange(@NonNull LocalDate min, @NonNull LocalDate max) {
         mMinDate = min;
@@ -74,10 +74,11 @@ public class WeekAdapter extends PagerAdapter {
 
         final int dayOfWeek = min.getDayOfWeek().getValue(); //最小日期是周几
         //计算偏移量
-        mOffset = dayOfWeek - mFirstDayOfWeek;
-        if (dayOfWeek < mFirstDayOfWeek) {
+        mOffset = dayOfWeek - mWeekStart;
+        if (dayOfWeek < mWeekStart) {
             mOffset += DAYS_IN_WEEK;
         }
+        mStartDate = mMinDate.minusDays(mOffset);
         mCount = (days + mOffset) / DAYS_IN_WEEK;
 
         // Positions are now invalid, clear everything and start over.
@@ -93,7 +94,7 @@ public class WeekAdapter extends PagerAdapter {
      *                  through {@link Calendar#SATURDAY}
      */
     public void setWeekStart(int weekStart) {
-        mFirstDayOfWeek = weekStart;
+        mWeekStart = weekStart;
         // Update displayed views.
         final int count = mWeekViews.size();
         for (int i = 0; i < count; i++) {
@@ -101,6 +102,12 @@ public class WeekAdapter extends PagerAdapter {
             weekView.setFirstDayOfWeek(weekStart);
         }
     }
+
+
+    public void setOnDaySelectedListener(ProxyOnDaySelectedListener listener) {
+        mOnDaySelectedListener = listener;
+    }
+
 
     @Override
     public int getCount() {
@@ -114,10 +121,15 @@ public class WeekAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        final View itemView = (WeekView) mInflater.inflate(mLayoutResId, container, false);
+        final View itemView = mInflater.inflate(mLayoutResId, container, false);
         final WeekView weekView = (WeekView) itemView.findViewById(mWeekViewId);
         weekView.setOnDayClickListener(mOnDayClickListener);
 
+        LocalDate startDayOfWeek = mStartDate.plusWeeks(position);
+
+        weekView.setWeekParams(startDayOfWeek, mSelectedDay, mMinDate, mMaxDate, mWeekStart);
+        mWeekViews.put(position, weekView);
+        container.addView(weekView);
         return weekView;
     }
 
@@ -140,7 +152,7 @@ public class WeekAdapter extends PagerAdapter {
         if (oldPosition != newPosition && oldPosition >= 0) {
             final WeekView oldWeekView = mWeekViews.get(oldPosition, null);
             if (oldWeekView != null) {
-                oldWeekView.setSelectedDay(-1);
+                oldWeekView.setSelectedDay(null);
             }
         }
 
@@ -148,14 +160,19 @@ public class WeekAdapter extends PagerAdapter {
         if (newPosition >= 0) {
             final WeekView newWeekView = mWeekViews.get(oldPosition, null);
             if (newWeekView != null) {
-                newWeekView.setSelectedDay(day.getDayOfMonth());
+                newWeekView.setSelectedDay(day);
             }
         }
 
         mSelectedDay = day;
     }
 
-    private int getPositionForDay(@Nullable LocalDate day) {
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return mWeekViews.get(position).getMonthYearLabel();
+    }
+
+    public int getPositionForDay(@Nullable LocalDate day) {
         if (day == null) {
             return -1;
         }

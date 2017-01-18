@@ -29,6 +29,11 @@ import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.YearMonth;
 import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.temporal.ChronoField;
+import org.threeten.bp.temporal.TemporalAdjuster;
+import org.threeten.bp.temporal.TemporalAdjusters;
+import org.threeten.bp.temporal.TemporalField;
+import org.threeten.bp.temporal.WeekFields;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -118,6 +123,8 @@ class MonthView extends View {
 
     private List<Integer> mEventDay = Arrays.asList(5, 9);
 
+    private LocalDate mFirstDayOfMonth;
+
     @ColorInt
     private int mDayTextColor = Color.BLACK;
     @ColorInt
@@ -148,9 +155,7 @@ class MonthView extends View {
         mDayDisableTextColor = ContextCompat.getColor(context, android.R.color.darker_gray);
         mDayActivatedTextColor = Color.WHITE;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
-        }
+
         // updateMonthYearLabel();
         initPaints(res);
         mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
@@ -194,7 +199,7 @@ class MonthView extends View {
     private void initPaints(Resources res) {
 
         //TODO 添加属性配置
-        float dayTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 13, res.getDisplayMetrics());
+        float dayTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 25, res.getDisplayMetrics());
 
 
         mDaySelectorPaint.setAntiAlias(true);
@@ -230,20 +235,6 @@ class MonthView extends View {
         return mGestureDetector.onTouchEvent(event);
     }
 
-    /**
-     * Returns the column (0 indexed) closest to the previouslyFocusedRect or center if null. The 0
-     * index is related to the first day of the week.
-     */
-    private int findClosestColumn(@Nullable Rect previouslyFocusedRect) {
-        if (previouslyFocusedRect == null) {
-            return DAYS_IN_WEEK / 2;
-        } else {
-            int centerX = previouslyFocusedRect.centerX() - getPaddingLeft();
-            final int columnFromLeft =
-                    constrain(centerX / mCellWidth, 0, DAYS_IN_WEEK - 1);
-            return columnFromLeft;
-        }
-    }
 
     private boolean isFirstDayOfWeek(int day) {
         final int offset = findDayOffset();
@@ -304,7 +295,7 @@ class MonthView extends View {
     private void drawDays(Canvas canvas) {
         final TextPaint solarP = mSolarDayPaint;
         final TextPaint lunarP = mLunarDayPaint;
-        lunarP.setTextSize(solarP.getTextSize() * 0.75f);
+        lunarP.setTextSize(solarP.getTextSize() * 0.5f);
         final int rowHeight = mDayHeight;
         final int colWidth = mCellWidth;
 
@@ -420,7 +411,7 @@ class MonthView extends View {
      * @param weekStart which day the week should start on, valid values are {@link Calendar#SUNDAY}
      *                  through {@link Calendar#SATURDAY}
      */
-    public void setFirstDayOfWeek(@IntRange(from = 1, to = 7) int weekStart) {
+    public void setWeekStart(@IntRange(from = 1, to = 7) int weekStart) {
         if (isValidDayOfWeek(weekStart)) {
             mWeekStart = weekStart;
         } else {
@@ -453,16 +444,18 @@ class MonthView extends View {
         }
         mYear = year;
 
-        LocalDate localDate = LocalDate.of(mYear, mMonth, 1);
+        mFirstDayOfMonth = LocalDate.of(mYear, mMonth, 1);
+
         //获取本月第一天是星期几
-        mDayOfWeekStart = localDate.getDayOfWeek().getValue();
+        mDayOfWeekStart = mFirstDayOfMonth.getDayOfWeek().getValue();
+
 
         if (isValidDayOfWeek(weekStart)) {
             mWeekStart = weekStart;
         } else {
             mWeekStart = DayOfWeek.SUNDAY.getValue();
         }
-        mDaysInMonth = localDate.lengthOfMonth();
+        mDaysInMonth = mFirstDayOfMonth.lengthOfMonth();
 
         mToday = -1;
         final LocalDate nowDate = LocalDate.now();
@@ -478,6 +471,10 @@ class MonthView extends View {
             mLunarMonth = LunarCalendar.getInstanceMonth(mYear, mMonth);
         }
         invalidate();
+    }
+
+    public LocalDate getFirstDayOfMonth() {
+        return mFirstDayOfMonth;
     }
 
 
@@ -597,7 +594,7 @@ class MonthView extends View {
     /**
      * Handles callbacks when the user clicks on a time object.
      */
-     interface OnDayClickListener {
+    interface OnDayClickListener {
         void onDayClick(MonthView view, LocalDate day);
 
     }

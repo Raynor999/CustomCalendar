@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoField;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalField;
@@ -39,16 +40,17 @@ public class ExampleInstrumentedTest {
     public void testLocalDate() {
         int us = WeekFields.of(Locale.US).getFirstDayOfWeek().getValue();
         int france = WeekFields.of(Locale.getDefault()).getFirstDayOfWeek().getValue();
-        assertEquals(us,7);
-        assertEquals(france,1);
+        assertEquals(us, 7);
+        assertEquals(france, 1);
     }
 
     @Test
     public void testWeekFiled() {
-        LocalDate min = LocalDate.of(2017,1,2);
-        LocalDate max = LocalDate.of(2017,2,3);
-        long weeks = min.until(max, ChronoUnit.WEEKS);
-        assertEquals(5,weeks);
+        LocalDate min = LocalDate.of(2017, 1, 2);
+        LocalDate max = LocalDate.of(2017, 2, 3);
+        String mWeekMonthYearLabel = LocalDate.of(2017, 1, 18).format(DateTimeFormatter.ofPattern("yyyy年MM月第W周"));
+
+        assertEquals("2017年01月第3周",mWeekMonthYearLabel);
 
     }
 }

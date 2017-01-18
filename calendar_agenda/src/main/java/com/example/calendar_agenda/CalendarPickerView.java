@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -41,6 +42,8 @@ public class CalendarPickerView extends LinearLayout {
     private final WeekBarView mWeekBarView;
 
     private MonthAdapter mMonthAdapter;
+
+    private WeekAdapter mWeekAdapter;
 
 
     private OnDaySelectedListener mOnDaySelectedListener;
@@ -82,21 +85,24 @@ public class CalendarPickerView extends LinearLayout {
         a.recycle();
 
         mMonthAdapter = new MonthAdapter(context, R.layout.layout_month_view, R.id.month_view);
-
+        mWeekAdapter = new WeekAdapter(context, R.layout.layout_week_view, R.id.week_view);
         // Set up adapter.
         final LayoutInflater inflater = LayoutInflater.from(context);
         mMonthViewPager = new ViewPager(context);
         mMonthViewPager.setLayoutParams(new ViewPager.LayoutParams());
-        mWeekViewPager = new ViewPager(context);
-        mWeekBarView = (WeekBarView) inflater.inflate(R.layout.layout_week_bar, this, false);
 
+        mWeekViewPager = new ViewPager(context);
+        mWeekViewPager.setLayoutParams(new ViewPager.LayoutParams());
+        mWeekBarView = (WeekBarView) inflater.inflate(R.layout.layout_week_bar, this, false);
 
         addView(mWeekBarView);
         addView(mWeekViewPager);
         addView(mMonthViewPager);
-        mWeekViewPager.setVisibility(GONE);
+
+        mMonthViewPager.setVisibility(GONE);
 
         mMonthViewPager.setAdapter(mMonthAdapter);
+        mWeekViewPager.setAdapter(mWeekAdapter);
         // Set up min and max dates. 设置最小时间和最大时间
         try {
             if (!TextUtils.isEmpty(minDateStr)) {
@@ -125,7 +131,22 @@ public class CalendarPickerView extends LinearLayout {
         onRangeChanged();
         setDate(mSelectedDay, false);
         mMonthAdapter.setOnDaySelectedListener(mProxyListener);
+        mWeekAdapter.setOnDaySelectedListener(mProxyListener);
+
+        mWeekViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                if (mOnCalendarChangedListener != null) {
+                    mMonthAdapter.getItemPosition()
+                            mOnCalendarChangedListener.onMonthChanged();
+                }
+            }
+        });
     }
+
+    private OnCalendarChangedListener mOnCalendarChangedListener;
+
+
 
 
     /**
@@ -152,20 +173,31 @@ public class CalendarPickerView extends LinearLayout {
     /**
      * Moves to the month containing the specified day, optionally setting the day as selected.
      *
-     * @param localDate   the target day in LocalDate
+     * @param date        the target day in LocalDate
      * @param animate     whether to smooth scroll to the new position
      * @param setSelected whether to set the specified day as selected
      */
-    private void setDate(@NonNull LocalDate localDate, boolean animate, boolean setSelected) {
+    private void setDate(@NonNull LocalDate date, boolean animate, boolean setSelected) {
         if (setSelected) {
-            mSelectedDay = localDate;
+            mSelectedDay = date;
         }
-        final int position = mMonthAdapter.getPositionFromDay(localDate);
-        if (position != mMonthViewPager.getCurrentItem()) {
-            mMonthViewPager.setCurrentItem(position, animate);
+        if (true) {
+            final int position = mWeekAdapter.getPositionForDay(date);
+            if (position != mWeekViewPager.getCurrentItem()) {
+                mWeekViewPager.setCurrentItem(position, animate);
+            }
+            mWeekAdapter.setSelectedDay(date);
+
+        } else {
+            final int position = mMonthAdapter.getPositionFromDay(date);
+            if (position != mMonthViewPager.getCurrentItem()) {
+                mMonthViewPager.setCurrentItem(position, animate);
+            }
+
+            mMonthAdapter.setSelectedDay(date);
         }
 
-        mMonthAdapter.setSelectedDay(localDate);
+
     }
 
     public LocalDate getDate() {
@@ -174,6 +206,7 @@ public class CalendarPickerView extends LinearLayout {
 
     public void setWeekStart(int weekStart) {
         mMonthAdapter.setWeekStart(weekStart);
+        mWeekAdapter.setWeekStart(weekStart);
         mWeekBarView.setWeekStart(weekStart);
     }
 
@@ -204,7 +237,7 @@ public class CalendarPickerView extends LinearLayout {
      */
     public void onRangeChanged() {
         mMonthAdapter.setRange(mMinDate, mMaxDate);
-
+        mWeekAdapter.setRange(mMinDate, mMaxDate);
         // Changing the min/max date changes the selection position since we
         // don't really have stable IDs. Jumps immediately to the new position.
         setDate(mSelectedDay, false, false);
@@ -224,9 +257,19 @@ public class CalendarPickerView extends LinearLayout {
 
     public void addOnPage(ViewPager.OnPageChangeListener listener) {
         mMonthViewPager.addOnPageChangeListener(listener);
+        mWeekViewPager.addOnPageChangeListener(listener);
     }
 
-    public CharSequence  getYearMonthTitle() {
-       return mMonthAdapter.getPageTitle(mMonthViewPager.getCurrentItem());
+
+    public CharSequence getYearMonthTitle() {
+
+        return mWeekAdapter.getPageTitle(mWeekViewPager.getCurrentItem());
+        // return mMonthAdapter.getPageTitle(mMonthViewPager.getCurrentItem());
+    }
+
+    public interface OnCalendarChangedListener {
+        void onMonthChanged(LocalDate firstDayOfMonth);
+
+        void onWeekChanged(LocalDate startDayOfWeek);
     }
 }
