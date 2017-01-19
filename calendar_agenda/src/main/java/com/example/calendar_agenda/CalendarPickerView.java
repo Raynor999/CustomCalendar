@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -137,16 +136,24 @@ public class CalendarPickerView extends LinearLayout {
             @Override
             public void onPageSelected(int position) {
                 if (mOnCalendarChangedListener != null) {
-                    mMonthAdapter.getItemPosition()
-                            mOnCalendarChangedListener.onMonthChanged();
+                    final LocalDate startDate = mWeekAdapter.getStartDayOfWeek(position);
+                    mOnCalendarChangedListener.onWeekChanged(startDate);
+                }
+            }
+        });
+
+        mMonthViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                if (mOnCalendarChangedListener != null) {
+                    final LocalDate selectedDate = mMonthAdapter.getFirstDayOfMonth(position);
+                    mOnCalendarChangedListener.onMonthChanged(selectedDate);
                 }
             }
         });
     }
 
     private OnCalendarChangedListener mOnCalendarChangedListener;
-
-
 
 
     /**

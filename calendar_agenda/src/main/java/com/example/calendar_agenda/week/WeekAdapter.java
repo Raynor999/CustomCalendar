@@ -195,4 +195,11 @@ public class WeekAdapter extends PagerAdapter {
         }
     };
 
+    public LocalDate getStartDayOfWeek(int position) {
+        WeekView weekView = mWeekViews.get(position);
+        if (weekView != null) {
+           return weekView.getStartDayOfWeek();
+        }
+        return null;
+    }
 }

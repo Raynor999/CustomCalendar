@@ -441,6 +441,10 @@ public class WeekView extends View {
         return mWeekMonthYearLabel;
     }
 
+    public LocalDate getStartDayOfWeek() {
+        return mStartDate;
+    }
+
     /**
      * Handles callbacks when the user clicks on a time object.
      */
