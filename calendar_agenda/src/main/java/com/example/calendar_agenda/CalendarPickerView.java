@@ -2,6 +2,7 @@ package com.example.calendar_agenda;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
@@ -19,6 +20,8 @@ import org.threeten.bp.DayOfWeek;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Month;
 import org.threeten.bp.format.DateTimeParseException;
+
+import java.util.List;
 
 
 /**
@@ -155,6 +158,13 @@ public class CalendarPickerView extends LinearLayout {
 
     private OnCalendarChangedListener mOnCalendarChangedListener;
 
+    public void setOnCalendarChangedListener(OnCalendarChangedListener mOnCalendarChangedListener) {
+        this.mOnCalendarChangedListener = mOnCalendarChangedListener;
+    }
+
+    public void setOnDaySelectedListener(OnDaySelectedListener mOnDaySelectedListener) {
+        this.mOnDaySelectedListener = mOnDaySelectedListener;
+    }
 
     /**
      * Sets the currently selected date to the specified LocalDate. Jumps immediately to the new
@@ -189,7 +199,7 @@ public class CalendarPickerView extends LinearLayout {
             mSelectedDay = date;
         }
         if (true) {
-            final int position = mWeekAdapter.getPositionForDay(date);
+            final int position = mWeekAdapter.getPositionFromDay(date);
             if (position != mWeekViewPager.getCurrentItem()) {
                 mWeekViewPager.setCurrentItem(position, animate);
             }
@@ -262,14 +272,11 @@ public class CalendarPickerView extends LinearLayout {
         MONTH,
     }
 
-    public void addOnPage(ViewPager.OnPageChangeListener listener) {
-        mMonthViewPager.addOnPageChangeListener(listener);
-        mWeekViewPager.addOnPageChangeListener(listener);
+    public void setEvents(@NonNull List<Integer> events) {
+
     }
 
-
     public CharSequence getYearMonthTitle() {
-
         return mWeekAdapter.getPageTitle(mWeekViewPager.getCurrentItem());
         // return mMonthAdapter.getPageTitle(mMonthViewPager.getCurrentItem());
     }
@@ -279,4 +286,5 @@ public class CalendarPickerView extends LinearLayout {
 
         void onWeekChanged(LocalDate startDayOfWeek);
     }
+
 }

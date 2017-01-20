@@ -13,10 +13,18 @@ import android.view.ViewGroup;
 
 import com.example.calendar_agenda.util.ProxyOnDaySelectedListener;
 
+import org.threeten.bp.Clock;
+import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.temporal.ChronoUnit;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by lijunguan on 2017/1/17. email: lijunguan199210@gmail.com blog:
@@ -45,6 +53,8 @@ public class WeekAdapter extends PagerAdapter {
 
     private LocalDate mSelectedDay = null;
 
+    private SparseArray<List<Integer>> mMonthEvents;
+
     /**
      * 设置的起始日期的偏移量, 即最小日期所在的周,距离周的第一天的偏移量.
      */
@@ -69,7 +79,6 @@ public class WeekAdapter extends PagerAdapter {
     public void setRange(@NonNull LocalDate min, @NonNull LocalDate max) {
         mMinDate = min;
         mMaxDate = max;
-
         int days = (int) min.until(max, ChronoUnit.DAYS);
 
         final int dayOfWeek = min.getDayOfWeek().getValue(); //最小日期是周几
@@ -124,13 +133,17 @@ public class WeekAdapter extends PagerAdapter {
         final View itemView = mInflater.inflate(mLayoutResId, container, false);
         final WeekView weekView = (WeekView) itemView.findViewById(mWeekViewId);
         weekView.setOnDayClickListener(mOnDayClickListener);
-
         LocalDate startDayOfWeek = mStartDate.plusWeeks(position);
 
-        weekView.setWeekParams(startDayOfWeek, mSelectedDay, mMinDate, mMaxDate, mWeekStart);
+        weekView.setWeekParams(startDayOfWeek, mSelectedDay, mMinDate, mMaxDate, mWeekStart, mMonthEvents);
         mWeekViews.put(position, weekView);
         container.addView(weekView);
         return weekView;
+    }
+
+    public void setMonthEvents(int month, @NonNull List<Integer> events) {
+        mMonthEvents.put(month, events);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -145,6 +158,7 @@ public class WeekAdapter extends PagerAdapter {
      * @param day the selected day
      */
     public void setSelectedDay(@Nullable LocalDate day) {
+
         final int oldPosition = getPositionForDay(mSelectedDay);
         final int newPosition = getPositionForDay(day);
 
@@ -169,13 +183,35 @@ public class WeekAdapter extends PagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return mWeekViews.get(position).getMonthYearLabel();
+        WeekView weekView = mWeekViews.get(position);
+        if (weekView != null) {
+            return weekView.getMonthYearLabel();
+        }
+        return "";
+    }
+
+    /**
+     * 根据日期得到 该日期对应的周的position
+     *
+     * @param date 日期对象
+     * @return 传入日期对应的周的 position, 加入了校验 返回的position 在 0 ~ mCount -1
+     */
+    public int getPositionFromDay(LocalDate date) {
+        final int totalWeeks = getCount();
+        final int offsetDays = (int) mMinDate.until(date, ChronoUnit.DAYS);
+        final int position = (offsetDays + mOffset) / DAYS_IN_WEEK;
+        return constrain(position, 0, totalWeeks - 1);
+    }
+
+    private int constrain(int amount, int low, int high) {
+        return amount < low ? low : (amount > high ? high : amount);
     }
 
     public int getPositionForDay(@Nullable LocalDate day) {
         if (day == null) {
             return -1;
         }
+
         int offsetDays = (int) mMinDate.until(day, ChronoUnit.DAYS);
         //根据日期
         return (offsetDays + mOffset) / DAYS_IN_WEEK;
@@ -198,8 +234,10 @@ public class WeekAdapter extends PagerAdapter {
     public LocalDate getStartDayOfWeek(int position) {
         WeekView weekView = mWeekViews.get(position);
         if (weekView != null) {
-           return weekView.getStartDayOfWeek();
+            return weekView.getStartDayOfWeek();
         }
         return null;
     }
+
+
 }

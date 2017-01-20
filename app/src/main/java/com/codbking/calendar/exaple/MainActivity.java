@@ -8,6 +8,8 @@ import android.view.View;
 
 import com.example.calendar_agenda.CalendarPickerView;
 
+import org.threeten.bp.LocalDate;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -20,20 +22,15 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         final CalendarPickerView calendarPickerView = (CalendarPickerView) findViewById(R.id.calendar_view);
-        calendarPickerView.addOnPage(new ViewPager.OnPageChangeListener() {
+        calendarPickerView.setOnCalendarChangedListener(new CalendarPickerView.OnCalendarChangedListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
+            public void onMonthChanged(LocalDate firstDayOfMonth) {
                 setTitle(calendarPickerView.getYearMonthTitle());
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) {
-
+            public void onWeekChanged(LocalDate startDayOfWeek) {
+                setTitle(calendarPickerView.getYearMonthTitle());
             }
         });
     }

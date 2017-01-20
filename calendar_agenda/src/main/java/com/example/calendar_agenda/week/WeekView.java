@@ -12,6 +12,7 @@ import android.support.v4.view.ViewCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -74,7 +75,10 @@ public class WeekView extends View {
     private LocalDate mMaxDate;
 
     // 周视图,起始的日期(可能比最小日期 小)
-    private LocalDate mStartDate;
+    private LocalDate mStartDayOfWeek;
+
+    private LocalDate mEndDayOfWeek;
+
 
     private LocalDate mActivatedDay;
 
@@ -90,12 +94,11 @@ public class WeekView extends View {
     @ColorInt
     private int mDayActivatedTextColor;
 
-    private List<Integer> mEventDay = Arrays.asList(5, 9);
+    private SparseArray<List<Integer>> mMonthEvents;
 
 
     /**
-     * 额外的事件 (当这周显示的日期涉及到跨月甚至跨年时的情况,对应上个月或下个月的时间 )
-     * 是非常差的实现, 但由于种种原因,只能这样写. 服务器只能根据月份返回每月的event
+     * 额外的事件 (当这周显示的日期涉及到跨月甚至跨年时的情况,对应上个月或下个月的时间 ) 是非常差的实现, 但由于种种原因,只能这样写. 服务器只能根据月份返回每月的event
      */
     private List<Integer> mExtraEventDay = Arrays.asList(29, 31);
 
@@ -240,7 +243,7 @@ public class WeekView extends View {
         for (int i = 0; i < 7; i++) {
             final int colCenter = colWidth * i + colWidth / 2;
 
-            LocalDate tempDay = mStartDate.plusDays(i);
+            LocalDate tempDay = mStartDayOfWeek.plusDays(i);
             final boolean isDayEnabled = isDayEnabled(tempDay);
             final boolean isDayActivated = mActivatedDay.equals(tempDay);
             final boolean isDayToday = mToday.equals(tempDay);
@@ -281,29 +284,58 @@ public class WeekView extends View {
     }
 
     private void drawEventBadge(Canvas canvas) {
-        if (mEventDay == null || mEventDay.isEmpty()) return;
+        if (mMonthEvents == null || mMonthEvents.size() == 0) return;
 
         final int rowHeight = mDayHeight;
         final int colWidth = mCellWidth;
 
         final Paint p = mDaySelectorPaint;
         p.setColor(Color.RED);
+
         float distance = (float) (Math.sin(45) * mDaySelectorRadius); //计算绘制坐标X,Y偏移量
         //圆点半径 16px
         final int radius = 10;
+        final float centerY = rowHeight / 2 - distance;
 
+        final int startDay = mStartDayOfWeek.getDayOfMonth();
+        final int endDay = mEndDayOfWeek.getDayOfMonth();
+        int startMonth = mStartDayOfWeek.getMonthValue();
+        int endMonth = mEndDayOfWeek.getMonthValue();
 
-
-        for (Integer day : mEventDay) {
-            //根据天定位到 坐标 [row][col]
-
-
-            if (day >= mStartDate.getDayOfMonth() && day <= mStartDate.getDayOfMonth() + DAYS_IN_WEEK) {
-                int col = day - mStartDate.getDayOfMonth();
-                final int colCenter = colWidth * col + colWidth / 2;
-                canvas.drawCircle(colCenter + distance, rowHeight / 2 - distance, radius, p);
-
+        //由于种种原因,导致绘制周视图的Event 红点的代码相对复杂,  接口返回的Event是按月返回的,且换回的是一个天数数组,
+        //而周视图 可能涉及到跨年跨月等情况
+        if (startMonth == endMonth) { //不存在跨月的情况
+            List<Integer> eventDays = mMonthEvents.get(startMonth);
+            if (eventDays == null) return;
+            for (Integer eventDay : eventDays) {
+                if (eventDay >= startDay && eventDay <= endDay) {
+                    int colCenter = (eventDay - startDay) * colWidth - colWidth / 2;
+                    canvas.drawCircle(colCenter + distance, centerY, radius, p);
+                }
             }
+        } else {  //跨月的情况
+            List<Integer> preEventDays = mMonthEvents.get(startMonth);
+            List<Integer> nextEventDays = mMonthEvents.get(endMonth);
+
+            if (preEventDays != null) {
+                for (Integer preEventDay : preEventDays) {
+                    if (preEventDay >= startDay) {
+                        int colCenter = (preEventDay - startDay) * colWidth - colWidth / 2;
+                        canvas.drawCircle(colCenter + distance, centerY, radius, p);
+
+                    }
+                }
+            }
+
+            if (nextEventDays != null) {
+                for (Integer nextEventDay : nextEventDays) {
+                    if (nextEventDay <= endDay) {
+                        int colCenter = (6 - endDay + nextEventDay) * colWidth - colWidth / 2;
+                        canvas.drawCircle(colCenter + distance, centerY, radius, p);
+                    }
+                }
+            }
+
         }
 
     }
@@ -332,7 +364,7 @@ public class WeekView extends View {
             return null;
         }
         final int col = (paddedX * DAYS_IN_WEEK) / mPaddedWidth;
-        return mStartDate.plusDays(col);
+        return mStartDayOfWeek.plusDays(col);
     }
 
     private void initPaints(Resources res) {
@@ -374,6 +406,9 @@ public class WeekView extends View {
     }
 
     public void setSelectedDay(LocalDate dayOfMonth) {
+        if (mActivatedDay.equals(dayOfMonth)) {
+            return;
+        }
         mActivatedDay = dayOfMonth;
         invalidate();
     }
@@ -387,17 +422,20 @@ public class WeekView extends View {
     }
 
     public void setWeekParams(LocalDate startDayOfWeek, LocalDate mSelectedDay,
-                              LocalDate mMinDate, LocalDate mMaxDate, int weekStart) {
-        mStartDate = startDayOfWeek;
+                              LocalDate mMinDate, LocalDate mMaxDate, int weekStart, SparseArray<List<Integer>> monthEvents) {
+        mStartDayOfWeek = startDayOfWeek;
+        mEndDayOfWeek = startDayOfWeek.plusDays(6);
         this.mActivatedDay = mSelectedDay;
         this.mMinDate = mMinDate;
         this.mMaxDate = mMaxDate;
+        this.mMonthEvents = monthEvents;
 
         if (isValidDayOfWeek(weekStart)) {
             mWeekStart = weekStart;
         } else {
             mWeekStart = DayOfWeek.SUNDAY.getValue();
         }
+
         mToday = LocalDate.now();
         updateWeekMonthYearLabel();
         invalidate();
@@ -405,7 +443,7 @@ public class WeekView extends View {
 
     private void updateWeekMonthYearLabel() {
 
-        LocalDate tempDate = mStartDate.plusDays(3);
+        LocalDate tempDate = mStartDayOfWeek.plusDays(3);
         int week = tempDate.get(WeekFields.of(DayOfWeek.of(mWeekStart), 1).weekOfMonth());
 
         mWeekMonthYearLabel = String.format(Locale.getDefault(), "%d年%d月第%d周",
@@ -442,7 +480,7 @@ public class WeekView extends View {
     }
 
     public LocalDate getStartDayOfWeek() {
-        return mStartDate;
+        return mStartDayOfWeek;
     }
 
     /**
@@ -452,5 +490,9 @@ public class WeekView extends View {
         void onDayClick(WeekView view, LocalDate day);
     }
 
+    public void setShowLunar(boolean showLunar) {
+        isShowLunar = showLunar;
+        invalidate();
+    }
 
 }
